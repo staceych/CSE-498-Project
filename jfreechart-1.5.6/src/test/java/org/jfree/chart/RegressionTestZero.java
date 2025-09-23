@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class RegressionTestZero {
+public class RegressionZeroTest {
 
     public static boolean debug = false;
 
