@@ -11,11 +11,8 @@ intel/intel_init.lo: intel/intel_init.c /usr/include/stdc-predef.h \
  /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h \
  /usr/include/x86_64-linux-gnu/bits/floatn.h \
  /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
- /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
- /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
- /usr/include/x86_64-linux-gnu/bits/stdlib.h /usr/include/string.h \
- /usr/include/x86_64-linux-gnu/bits/string_fortified.h config.h \
- intel/../pnglibconf.h intel/../png.h intel/../pngconf.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-float.h /usr/include/string.h \
+ config.h intel/../pnglibconf.h intel/../png.h intel/../pngconf.h \
  /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h \
  /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h \
  /usr/include/limits.h /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
@@ -33,15 +30,11 @@ intel/intel_init.lo: intel/intel_init.c /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/types/__FILE.h \
  /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
- /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
- /usr/include/x86_64-linux-gnu/bits/stdio2-decl.h \
- /usr/include/x86_64-linux-gnu/bits/stdio.h \
- /usr/include/x86_64-linux-gnu/bits/stdio2.h /usr/include/setjmp.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio_lim.h /usr/include/setjmp.h \
  /usr/include/x86_64-linux-gnu/bits/setjmp.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h \
  /usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h \
- /usr/include/x86_64-linux-gnu/bits/setjmp2.h /usr/include/time.h \
- /usr/include/x86_64-linux-gnu/bits/time.h \
+ /usr/include/time.h /usr/include/x86_64-linux-gnu/bits/time.h \
  /usr/include/x86_64-linux-gnu/bits/types/clock_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/time_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_tm.h \
@@ -63,8 +56,6 @@ intel/intel_init.lo: intel/intel_init.c /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-intn.h /usr/include/unistd.h \
  /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
  /usr/include/x86_64-linux-gnu/bits/confname.h \
- /usr/include/x86_64-linux-gnu/bits/unistd.h \
- /usr/include/x86_64-linux-gnu/bits/unistd-decl.h \
  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h intel/../pnginfo.h \
  intel/../pngdebug.h
 /usr/include/stdc-predef.h:
@@ -82,11 +73,8 @@ intel/../pngpriv.h:
 /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h:
 /usr/include/x86_64-linux-gnu/bits/floatn.h:
 /usr/include/x86_64-linux-gnu/bits/floatn-common.h:
-/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
-/usr/include/x86_64-linux-gnu/bits/stdlib.h:
 /usr/include/string.h:
-/usr/include/x86_64-linux-gnu/bits/string_fortified.h:
 config.h:
 intel/../pnglibconf.h:
 intel/../png.h:
@@ -111,14 +99,10 @@ intel/../pngconf.h:
 /usr/include/x86_64-linux-gnu/bits/types/FILE.h:
 /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h:
 /usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
-/usr/include/x86_64-linux-gnu/bits/stdio2-decl.h:
-/usr/include/x86_64-linux-gnu/bits/stdio.h:
-/usr/include/x86_64-linux-gnu/bits/stdio2.h:
 /usr/include/setjmp.h:
 /usr/include/x86_64-linux-gnu/bits/setjmp.h:
 /usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
 /usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h:
-/usr/include/x86_64-linux-gnu/bits/setjmp2.h:
 /usr/include/time.h:
 /usr/include/x86_64-linux-gnu/bits/time.h:
 /usr/include/x86_64-linux-gnu/bits/types/clock_t.h:
@@ -146,8 +130,6 @@ intel/../pngstruct.h:
 /usr/include/unistd.h:
 /usr/include/x86_64-linux-gnu/bits/posix_opt.h:
 /usr/include/x86_64-linux-gnu/bits/confname.h:
-/usr/include/x86_64-linux-gnu/bits/unistd.h:
-/usr/include/x86_64-linux-gnu/bits/unistd-decl.h:
 /usr/include/x86_64-linux-gnu/bits/unistd_ext.h:
 intel/../pnginfo.h:
 intel/../pngdebug.h:

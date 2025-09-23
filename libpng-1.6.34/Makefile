@@ -538,13 +538,13 @@ AUTOCONF = ${SHELL} /home/ubuntu/project2/CSE-498-Project/libpng-1.6.34/missing 
 AUTOHEADER = ${SHELL} /home/ubuntu/project2/CSE-498-Project/libpng-1.6.34/missing autoheader
 AUTOMAKE = ${SHELL} /home/ubuntu/project2/CSE-498-Project/libpng-1.6.34/missing automake-1.15
 AWK = gawk
-CC = /home/ubuntu/project2/CSE-498-Project/afl-2.52b/afl-gcc
-CCAS = /home/ubuntu/project2/CSE-498-Project/afl-2.52b/afl-gcc
+CC = gcc
+CCAS = gcc
 CCASDEPMODE = depmode=gcc3
-CCASFLAGS = -static
+CCASFLAGS = --coverage -static
 CCDEPMODE = depmode=gcc3
-CFLAGS = -static
-CPP = /home/ubuntu/project2/CSE-498-Project/afl-2.52b/afl-gcc -E
+CFLAGS = --coverage -static
+CPP = gcc -E
 CPPFLAGS = 
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
@@ -555,7 +555,7 @@ DEPDIR = .deps
 # checks input tokens for validity - effectively it performs part of the ANSI-C
 # parsing - and therefore fails with the .df files.  configure.ac has special
 # checks for this and sets DFNCPP appropriately.
-DFNCPP = /home/ubuntu/project2/CSE-498-Project/afl-2.52b/afl-gcc -E
+DFNCPP = gcc -E
 DLLTOOL = false
 DSYMUTIL = 
 DUMPBIN = 
@@ -621,7 +621,7 @@ abs_srcdir = /home/ubuntu/project2/CSE-498-Project/libpng-1.6.34
 abs_top_builddir = /home/ubuntu/project2/CSE-498-Project/libpng-1.6.34
 abs_top_srcdir = /home/ubuntu/project2/CSE-498-Project/libpng-1.6.34
 ac_ct_AR = ar
-ac_ct_CC = /home/ubuntu/project2/CSE-498-Project/afl-2.52b/afl-gcc
+ac_ct_CC = gcc
 ac_ct_DUMPBIN = 
 am__include = include
 am__leading_dot = .
