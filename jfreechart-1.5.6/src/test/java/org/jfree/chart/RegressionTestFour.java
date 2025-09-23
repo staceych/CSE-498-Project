@@ -1,3 +1,6 @@
+package org.jfree.chart;
+
+
 import org.junit.FixMethodOrder;
 // import org.junit.Test;
 import org.junit.jupiter.api.Test;
