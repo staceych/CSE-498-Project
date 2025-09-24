@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JDBCPieDataset.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.data.jdbc</a> &gt; <span class="el_source">JDBCPieDataset.java</span></div><h1>JDBCPieDataset.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * -------------------
+ * JDBCPieDataset.java
+ * -------------------
+ * (C) Copyright 2002-present, by Bryan Scott and Contributors.
+ *
+ * Original Author:  Bryan Scott; Andy
+ * Contributor(s):   David Gilbert;
+ *                   Thomas Morgner;
+ *
+ */
+
+package org.jfree.data.jdbc;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.sql.Types;
+
+import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.data.general.PieDataset;
+
+/**
+ * A {@link PieDataset} that reads data from a database via JDBC.
+ * &lt;P&gt;
+ * A query should be supplied that returns data in two columns, the first
+ * containing VARCHAR data, and the second containing numerical data.  The
+ * data is cached in-memory and can be refreshed at any time.
+ */
+public class JDBCPieDataset extends DefaultPieDataset {
+
+    /** For serialization. */
+    static final long serialVersionUID = -8753216855496746108L;
+
+    /** The database connection. */
+    private transient Connection connection;
+
+    /**
+     * Creates a new JDBCPieDataset and establishes a new database connection.
+     *
+     * @param url  the URL of the database connection.
+     * @param driverName  the database driver class name.
+     * @param user  the database user.
+     * @param password  the database users password.
+     *
+     * @throws ClassNotFoundException if the driver cannot be found.
+     * @throws SQLException if there is a problem obtaining a database
+     *                      connection.
+     */
+    public JDBCPieDataset(String url,
+                          String driverName,
+                          String user,
+                          String password)
+<span class="nc" id="L83">        throws SQLException, ClassNotFoundException {</span>
+
+<span class="nc" id="L85">        Class.forName(driverName);</span>
+<span class="nc" id="L86">        this.connection = DriverManager.getConnection(url, user, password);</span>
+<span class="nc" id="L87">    }</span>
+
+    /**
+     * Creates a new JDBCPieDataset using a pre-existing database connection.
+     * &lt;P&gt;
+     * The dataset is initially empty, since no query has been supplied yet.
+     *
+     * @param con  the database connection.
+     */
+<span class="nc" id="L96">    public JDBCPieDataset(Connection con) {</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (con == null) {</span>
+<span class="nc" id="L98">            throw new NullPointerException(&quot;A connection must be supplied.&quot;);</span>
+        }
+<span class="nc" id="L100">        this.connection = con;</span>
+<span class="nc" id="L101">    }</span>
+
+
+    /**
+     * Creates a new JDBCPieDataset using a pre-existing database connection.
+     * &lt;P&gt;
+     * The dataset is initialised with the supplied query.
+     *
+     * @param con  the database connection.
+     * @param query  the database connection.
+     *
+     * @throws SQLException if there is a problem executing the query.
+     */
+    public JDBCPieDataset(Connection con, String query) throws SQLException {
+<span class="nc" id="L115">        this(con);</span>
+<span class="nc" id="L116">        executeQuery(query);</span>
+<span class="nc" id="L117">    }</span>
+
+    /**
+     *  ExecuteQuery will attempt execute the query passed to it against the
+     *  existing database connection.  If no connection exists then no action
+     *  is taken.
+     *  The results from the query are extracted and cached locally, thus
+     *  applying an upper limit on how many rows can be retrieved successfully.
+     *
+     * @param  query  the query to be executed.
+     *
+     * @throws SQLException if there is a problem executing the query.
+     */
+    public void executeQuery(String query) throws SQLException {
+<span class="nc" id="L131">      executeQuery(this.connection, query);</span>
+<span class="nc" id="L132">    }</span>
+
+    /**
+     *  ExecuteQuery will attempt execute the query passed to it against the
+     *  existing database connection.  If no connection exists then no action
+     *  is taken.
+     *  The results from the query are extracted and cached locally, thus
+     *  applying an upper limit on how many rows can be retrieved successfully.
+     *
+     * @param  query  the query to be executed
+     * @param  con  the connection the query is to be executed against
+     *
+     * @throws SQLException if there is a problem executing the query.
+     */
+    public void executeQuery(Connection con, String query) throws SQLException {
+
+<span class="nc" id="L148">        Statement statement = null;</span>
+<span class="nc" id="L149">        ResultSet resultSet = null;</span>
+
+        try {
+<span class="nc" id="L152">            statement = con.createStatement();</span>
+<span class="nc" id="L153">            resultSet = statement.executeQuery(query);</span>
+<span class="nc" id="L154">            ResultSetMetaData metaData = resultSet.getMetaData();</span>
+
+<span class="nc" id="L156">            int columnCount = metaData.getColumnCount();</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">            if (columnCount != 2) {</span>
+<span class="nc" id="L158">                throw new SQLException(</span>
+                    &quot;Invalid sql generated.  PieDataSet requires 2 columns only&quot;
+                );
+            }
+
+<span class="nc" id="L163">            int columnType = metaData.getColumnType(2);</span>
+            double value;
+<span class="nc bnc" id="L165" title="All 2 branches missed.">            while (resultSet.next()) {</span>
+<span class="nc" id="L166">                Comparable key = resultSet.getString(1);</span>
+<span class="nc bnc" id="L167" title="All 3 branches missed.">                switch (columnType) {</span>
+                    case Types.NUMERIC:
+                    case Types.REAL:
+                    case Types.INTEGER:
+                    case Types.DOUBLE:
+                    case Types.FLOAT:
+                    case Types.DECIMAL:
+                    case Types.BIGINT:
+<span class="nc" id="L175">                        value = resultSet.getDouble(2);</span>
+<span class="nc" id="L176">                        setValue(key, value);</span>
+<span class="nc" id="L177">                        break;</span>
+
+                    case Types.DATE:
+                    case Types.TIME:
+                    case Types.TIMESTAMP:
+<span class="nc" id="L182">                        Timestamp date = resultSet.getTimestamp(2);</span>
+<span class="nc" id="L183">                        value = date.getTime();</span>
+<span class="nc" id="L184">                        setValue(key, value);</span>
+<span class="nc" id="L185">                        break;</span>
+
+                    default:
+<span class="nc" id="L188">                        System.err.println(</span>
+                                &quot;JDBCPieDataset - unknown data type&quot;);
+                        break;
+                }
+<span class="nc" id="L192">            }</span>
+
+<span class="nc" id="L194">            fireDatasetChanged();</span>
+
+        }
+        finally {
+<span class="nc bnc" id="L198" title="All 2 branches missed.">            if (resultSet != null) {</span>
+                try {
+<span class="nc" id="L200">                    resultSet.close();</span>
+                }
+<span class="nc" id="L202">                catch (Exception e) {</span>
+<span class="nc" id="L203">                    System.err.println(&quot;JDBCPieDataset: swallowing exception.&quot;);</span>
+<span class="nc" id="L204">                }</span>
+            }
+<span class="nc bnc" id="L206" title="All 2 branches missed.">            if (statement != null) {</span>
+                try {
+<span class="nc" id="L208">                    statement.close();</span>
+                }
+<span class="nc" id="L210">                catch (Exception e) {</span>
+<span class="nc" id="L211">                    System.err.println(&quot;JDBCPieDataset: swallowing exception.&quot;);</span>
+<span class="nc" id="L212">                }</span>
+            }
+        }
+<span class="nc" id="L215">    }</span>
+
+
+    /**
+     * Close the database connection
+     */
+    public void close() {
+        try {
+<span class="nc" id="L223">            this.connection.close();</span>
+        }
+<span class="nc" id="L225">        catch (Exception e) {</span>
+<span class="nc" id="L226">            System.err.println(&quot;JdbcXYDataset: swallowing exception.&quot;);</span>
+<span class="nc" id="L227">        }</span>
+<span class="nc" id="L228">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RectangleEdge.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart.ui</a> &gt; <span class="el_source">RectangleEdge.java</span></div><h1>RectangleEdge.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ */
+
+package org.jfree.chart.ui;
+
+import java.awt.geom.Rectangle2D;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+
+/**
+ * Used to indicate the edge of a rectangle.
+ */
+public final class RectangleEdge implements Serializable {
+
+    /** For serialization. */
+    private static final long serialVersionUID = -7400988293691093548L;
+    
+    /** Top. */
+<span class="fc" id="L44">    public static final RectangleEdge TOP </span>
+        = new RectangleEdge(&quot;RectangleEdge.TOP&quot;);
+
+    /** Bottom. */
+<span class="fc" id="L48">    public static final RectangleEdge BOTTOM </span>
+        = new RectangleEdge(&quot;RectangleEdge.BOTTOM&quot;);
+
+    /** Left. */
+<span class="fc" id="L52">    public static final RectangleEdge LEFT </span>
+        = new RectangleEdge(&quot;RectangleEdge.LEFT&quot;);
+
+    /** Right. */
+<span class="fc" id="L56">    public static final RectangleEdge RIGHT </span>
+        = new RectangleEdge(&quot;RectangleEdge.RIGHT&quot;);
+
+    /** The name. */
+    private String name;
+
+    /**
+     * Private constructor.
+     *
+     * @param name  the name.
+     */
+<span class="fc" id="L67">    private RectangleEdge(String name) {</span>
+<span class="fc" id="L68">        this.name = name;</span>
+<span class="fc" id="L69">    }</span>
+
+    /**
+     * Returns a string representing the object.
+     *
+     * @return The string.
+     */
+    @Override
+    public String toString() {
+<span class="nc" id="L78">        return this.name;</span>
+    }
+
+    /**
+     * Returns {@code true} if this object is equal to the specified 
+     * object, and {@code false} otherwise.
+     *
+     * @param o  the other object.
+     *
+     * @return A boolean.
+     */
+    @Override
+    public boolean equals(Object o) {
+
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (this == o) {</span>
+<span class="fc" id="L93">            return true;</span>
+        }
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        if (!(o instanceof RectangleEdge)) {</span>
+<span class="fc" id="L96">            return false;</span>
+        }
+
+<span class="fc" id="L99">        final RectangleEdge order = (RectangleEdge) o;</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">        if (!this.name.equals(order.name)) {</span>
+<span class="fc" id="L101">            return false;</span>
+        }
+
+<span class="fc" id="L104">        return true;</span>
+
+    }
+
+    /**
+     * Returns a hash code value for the object.
+     *
+     * @return the hashcode
+     */
+    @Override
+    public int hashCode() {
+<span class="fc" id="L115">        return this.name.hashCode();</span>
+    }
+
+    /**
+     * Returns {@code true} if the edge is {@code TOP} or 
+     * {@code BOTTOM}, and {@code false} otherwise.
+     * 
+     * @param edge  the edge.
+     * 
+     * @return A boolean.
+     */
+    public static boolean isTopOrBottom(RectangleEdge edge) {
+<span class="fc bfc" id="L127" title="All 4 branches covered.">        return (edge == RectangleEdge.TOP || edge == RectangleEdge.BOTTOM);    </span>
+    }
+    
+    /**
+     * Returns {@code true} if the edge is {@code LEFT} or 
+     * {@code RIGHT}, and {@code false} otherwise.
+     * 
+     * @param edge  the edge.
+     * 
+     * @return A boolean.
+     */
+    public static boolean isLeftOrRight(RectangleEdge edge) {
+<span class="pc bpc" id="L139" title="1 of 4 branches missed.">        return (edge == RectangleEdge.LEFT || edge == RectangleEdge.RIGHT);    </span>
+    }
+
+    /**
+     * Returns the opposite edge.
+     * 
+     * @param edge  an edge.
+     * 
+     * @return The opposite edge.
+     */
+    public static RectangleEdge opposite(RectangleEdge edge) {
+<span class="nc" id="L150">        RectangleEdge result = null;</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (edge == RectangleEdge.TOP) {</span>
+<span class="nc" id="L152">            result = RectangleEdge.BOTTOM;</span>
+        }
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        else if (edge == RectangleEdge.BOTTOM) {</span>
+<span class="nc" id="L155">            result = RectangleEdge.TOP;</span>
+        }
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        else if (edge == RectangleEdge.LEFT) {</span>
+<span class="nc" id="L158">            result = RectangleEdge.RIGHT;</span>
+        }
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        else if (edge == RectangleEdge.RIGHT) {</span>
+<span class="nc" id="L161">            result = RectangleEdge.LEFT;</span>
+        }
+<span class="nc" id="L163">        return result;</span>
+    }
+    
+    /**
+     * Returns the x or y coordinate of the specified edge.
+     * 
+     * @param rectangle  the rectangle.
+     * @param edge  the edge.
+     * 
+     * @return The coordinate.
+     */
+    public static double coordinate(Rectangle2D rectangle, RectangleEdge edge) {
+<span class="fc" id="L175">        double result = 0.0;</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">        if (edge == RectangleEdge.TOP) {</span>
+<span class="nc" id="L177">            result = rectangle.getMinY();</span>
+        }
+<span class="fc bfc" id="L179" title="All 2 branches covered.">        else if (edge == RectangleEdge.BOTTOM) {</span>
+<span class="fc" id="L180">            result = rectangle.getMaxY();</span>
+        }
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">        else if (edge == RectangleEdge.LEFT) {</span>
+<span class="fc" id="L183">            result = rectangle.getMinX();</span>
+        }
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        else if (edge == RectangleEdge.RIGHT) {</span>
+<span class="nc" id="L186">            result = rectangle.getMaxX();</span>
+        }
+<span class="fc" id="L188">        return result;</span>
+    }
+    
+    /**
+     * Ensures that serialization returns the unique instances.
+     * 
+     * @return The object.
+     * 
+     * @throws ObjectStreamException if there is a problem.
+     */
+    private Object readResolve() throws ObjectStreamException {
+<span class="fc" id="L199">        RectangleEdge result = null;</span>
+<span class="fc bfc" id="L200" title="All 2 branches covered.">        if (this.equals(RectangleEdge.TOP)) {</span>
+<span class="fc" id="L201">            result = RectangleEdge.TOP;</span>
+        }
+<span class="fc bfc" id="L203" title="All 2 branches covered.">        else if (this.equals(RectangleEdge.BOTTOM)) {</span>
+<span class="fc" id="L204">            result = RectangleEdge.BOTTOM;</span>
+        }
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">        else if (this.equals(RectangleEdge.LEFT)) {</span>
+<span class="fc" id="L207">            result = RectangleEdge.LEFT;</span>
+        }
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        else if (this.equals(RectangleEdge.RIGHT)) {</span>
+<span class="nc" id="L210">            result = RectangleEdge.RIGHT;</span>
+        }
+<span class="fc" id="L212">        return result;</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OfflineRenderingChartPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart</a> &gt; <span class="el_source">OfflineRenderingChartPanel.java</span></div><h1>OfflineRenderingChartPanel.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * -------------------------------
+ * OfflineRenderingChartPanel.java
+ * -------------------------------
+ * (C) Copyright 2000-present, by Yuri Blankenstein and Contributors.
+ *
+ * Original Author:  Yuri Blankenstein;
+ */
+
+package org.jfree.chart;
+
+import java.awt.AlphaComposite;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.Rectangle;
+import java.awt.Transparency;
+import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
+
+import javax.swing.SwingWorker;
+
+import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.plot.PlotRenderingInfo;
+
+/**
+ * A {@link ChartPanel} that applies offline rendering, for better performance
+ * when navigating (i.e. panning / zooming) {@link JFreeChart charts} with lots
+ * of data.
+ * &lt;P&gt;
+ * This chart panel uses a {@link SwingWorker} to perform the actual
+ * {@link JFreeChart} rendering. While rendering, a {@link Cursor#WAIT_CURSOR
+ * wait cursor} is visible and the current buffered image of the chart will be
+ * scaled and drawn to the screen. When - while rendering - another
+ * {@link #setRefreshBuffer(boolean) refresh} is requested, this will be either
+ * postponed until the current rendering is done or ignored when another refresh
+ * is requested.
+ */
+public class OfflineRenderingChartPanel extends ChartPanel {
+    private static final long serialVersionUID = -724633596883320084L;
+
+    /**
+     * Using enum state pattern to control the 'offline' rendering
+     */
+<span class="nc" id="L72">    protected enum State {</span>
+
+        /** Idle state. */
+<span class="nc" id="L75">        IDLE {</span>
+            @Override
+            protected State renderOffline(OfflineRenderingChartPanel panel,
+                    OfflineChartRenderer renderer) {
+                // Start rendering offline
+<span class="nc" id="L80">                renderer.execute();</span>
+<span class="nc" id="L81">                panel.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));</span>
+<span class="nc" id="L82">                return RENDERING;</span>
+            }
+
+            @Override
+            protected State offlineRenderingDone(
+                    OfflineRenderingChartPanel panel,
+                    OfflineChartRenderer renderer) {
+<span class="nc" id="L89">                throw new IllegalStateException(</span>
+                        &quot;offlineRenderingDone not expected in IDLE state&quot;);
+            }
+        },
+
+        /** Rendering state. */
+<span class="nc" id="L95">        RENDERING {</span>
+            @Override
+            protected State renderOffline(OfflineRenderingChartPanel panel,
+                    OfflineChartRenderer renderer) {
+                // We're already rendering, we'll start this renderer when we're
+                // finished. If another rendering is requested, this one will be
+                // ignored, see RE_RENDERING_PENDING. This gains a lot of speed
+                // as not all requested (intermediate) renderings are executed
+                // for large plots.
+<span class="nc" id="L104">                panel.pendingOfflineRenderer = renderer;</span>
+<span class="nc" id="L105">                return RE_RENDERING_PENDING;</span>
+            }
+
+            /**
+             * Called when rendering is done.
+             *
+             * @param panel  the panel.
+             * @param renderer  the renderer.
+             * @return The state
+             */
+            @Override
+            protected State offlineRenderingDone(
+                    OfflineRenderingChartPanel panel,
+                    OfflineChartRenderer renderer) {
+                // Offline rendering done, prepare the buffer and info for the
+                // next repaint and request it.
+<span class="nc" id="L121">                panel.currentChartBuffer = renderer.buffer;</span>
+<span class="nc" id="L122">                panel.currentChartRenderingInfo = renderer.info;</span>
+<span class="nc" id="L123">                panel.repaint();</span>
+<span class="nc" id="L124">                panel.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));</span>
+<span class="nc" id="L125">                return IDLE;</span>
+            }
+        },
+<span class="nc" id="L128">        RE_RENDERING_PENDING {</span>
+            @Override
+            protected State renderOffline(OfflineRenderingChartPanel panel,
+                    OfflineChartRenderer renderer) {
+                // We're already rendering, we'll start this renderer when we're
+                // finished.
+<span class="nc" id="L134">                panel.pendingOfflineRenderer = renderer;</span>
+<span class="nc" id="L135">                return RE_RENDERING_PENDING;</span>
+            }
+
+            @Override
+            protected State offlineRenderingDone(
+                    OfflineRenderingChartPanel panel,
+                    OfflineChartRenderer renderer) {
+                // Store the intermediate result, but do not actively repaint
+                // as this could trigger another RE_RENDERING_PENDING if i.e.
+                // the buffer-image-size of the pending renderer differs from
+                // the current buffer-image-size.
+<span class="nc" id="L146">                panel.currentChartBuffer = renderer.buffer;</span>
+<span class="nc" id="L147">                panel.currentChartRenderingInfo = renderer.info;</span>
+                // Immediately start rendering again to update the chart to the
+                // latest requested state.
+<span class="nc" id="L150">                panel.pendingOfflineRenderer.execute();</span>
+<span class="nc" id="L151">                panel.pendingOfflineRenderer = null;</span>
+<span class="nc" id="L152">                return RENDERING;</span>
+            }
+        };
+
+        /**
+         * Render the content offline.
+         *
+         * @param panel  the panel.
+         * @param renderer  the renderer.
+         * @return The state.
+         */
+        protected abstract State renderOffline(
+                final OfflineRenderingChartPanel panel,
+                final OfflineChartRenderer renderer);
+
+        /**
+         * Called when rendering is done.
+         *
+         * @param panel  the panel.
+         * @param renderer  the renderer.
+         * @return The state.
+         */
+        protected abstract State offlineRenderingDone(
+                final OfflineRenderingChartPanel panel,
+                final OfflineChartRenderer renderer);
+    }
+
+    /** A buffer for the rendered chart. */
+<span class="nc" id="L180">    private transient BufferedImage currentChartBuffer = null;</span>
+<span class="nc" id="L181">    private transient ChartRenderingInfo currentChartRenderingInfo = null;</span>
+
+    /** A pending rendering for the chart. */
+<span class="nc" id="L184">    private transient OfflineChartRenderer pendingOfflineRenderer = null;</span>
+
+    /** The state. */
+<span class="nc" id="L187">    private State state = State.IDLE;</span>
+
+    /**
+     * Constructs a double buffered JFreeChart panel that displays the specified
+     * chart.
+     *
+     * @param chart the chart.
+     */
+    public OfflineRenderingChartPanel(JFreeChart chart) {
+<span class="nc" id="L196">        this(chart, DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_MINIMUM_DRAW_WIDTH,</span>
+                DEFAULT_MINIMUM_DRAW_HEIGHT, DEFAULT_MAXIMUM_DRAW_WIDTH,
+                DEFAULT_MAXIMUM_DRAW_HEIGHT, true, // properties
+                true, // save
+                true, // print
+                true, // zoom
+                true // tooltips
+        );
+
+<span class="nc" id="L205">    }</span>
+
+    /**
+     * Constructs a double buffered JFreeChart panel.
+     *
+     * @param chart      the chart.
+     * @param properties a flag indicating whether the chart property
+     *                   editor should be available via the popup menu.
+     * @param save       a flag indicating whether save options should be
+     *                   available via the popup menu.
+     * @param print      a flag indicating whether the print option
+     *                   should be available via the popup menu.
+     * @param zoom       a flag indicating whether zoom options should be
+     *                   added to the popup menu.
+     * @param tooltips   a flag indicating whether tooltips should be
+     *                   enabled for the chart.
+     */
+    public OfflineRenderingChartPanel(JFreeChart chart, boolean properties,
+            boolean save, boolean print, boolean zoom, boolean tooltips) {
+
+<span class="nc" id="L225">        this(chart, DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_MINIMUM_DRAW_WIDTH,</span>
+                DEFAULT_MINIMUM_DRAW_HEIGHT, DEFAULT_MAXIMUM_DRAW_WIDTH,
+                DEFAULT_MAXIMUM_DRAW_HEIGHT, properties, save, print, zoom,
+                tooltips);
+
+<span class="nc" id="L230">    }</span>
+
+    /**
+     * Constructs a double buffered JFreeChart panel.
+     *
+     * @param chart             the chart.
+     * @param width             the preferred width of the panel.
+     * @param height            the preferred height of the panel.
+     * @param minimumDrawWidth  the minimum drawing width.
+     * @param minimumDrawHeight the minimum drawing height.
+     * @param maximumDrawWidth  the maximum drawing width.
+     * @param maximumDrawHeight the maximum drawing height.
+     * @param properties        a flag indicating whether the chart
+     *                          property editor should be available via the
+     *                          popup menu.
+     * @param save              a flag indicating whether save options
+     *                          should be available via the popup menu.
+     * @param print             a flag indicating whether the print
+     *                          option should be available via the popup menu.
+     * @param zoom              a flag indicating whether zoom options
+     *                          should be added to the popup menu.
+     * @param tooltips          a flag indicating whether tooltips should
+     *                          be enabled for the chart.
+     */
+    public OfflineRenderingChartPanel(JFreeChart chart, int width, int height,
+            int minimumDrawWidth, int minimumDrawHeight, int maximumDrawWidth,
+            int maximumDrawHeight, boolean properties, boolean save,
+            boolean print, boolean zoom, boolean tooltips) {
+
+<span class="nc" id="L259">        this(chart, width, height, minimumDrawWidth, minimumDrawHeight,</span>
+                maximumDrawWidth, maximumDrawHeight, properties, true, save,
+                print, zoom, tooltips);
+<span class="nc" id="L262">    }</span>
+
+    /**
+     * Constructs a double buffered JFreeChart panel.
+     *
+     * @param chart             the chart.
+     * @param width             the preferred width of the panel.
+     * @param height            the preferred height of the panel.
+     * @param minimumDrawWidth  the minimum drawing width.
+     * @param minimumDrawHeight the minimum drawing height.
+     * @param maximumDrawWidth  the maximum drawing width.
+     * @param maximumDrawHeight the maximum drawing height.
+     * @param properties        a flag indicating whether the chart
+     *                          property editor should be available via the
+     *                          popup menu.
+     * @param copy              a flag indicating whether a copy option
+     *                          should be available via the popup menu.
+     * @param save              a flag indicating whether save options
+     *                          should be available via the popup menu.
+     * @param print             a flag indicating whether the print
+     *                          option should be available via the popup menu.
+     * @param zoom              a flag indicating whether zoom options
+     *                          should be added to the popup menu.
+     * @param tooltips          a flag indicating whether tooltips should
+     *                          be enabled for the chart.
+     */
+    public OfflineRenderingChartPanel(JFreeChart chart, int width, int height,
+            int minimumDrawWidth, int minimumDrawHeight, int maximumDrawWidth,
+            int maximumDrawHeight, boolean properties, boolean copy,
+            boolean save, boolean print, boolean zoom, boolean tooltips) {
+<span class="nc" id="L292">        super(chart, width, height, minimumDrawWidth, minimumDrawHeight,</span>
+                maximumDrawWidth, maximumDrawHeight, true, properties, copy,
+                save, print, zoom, tooltips);
+<span class="nc" id="L295">    }</span>
+
+    @Override
+    protected BufferedImage paintChartToBuffer(Graphics2D g2,
+            Dimension bufferSize, Dimension chartSize, Point2D anchor,
+            ChartRenderingInfo info) {
+<span class="nc" id="L301">        synchronized (state) {</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">            if (this.currentChartBuffer == null) {</span>
+                // Rendering the first time, prepare an empty buffer and
+                // start rendering, no need for an additional state
+<span class="nc" id="L305">                this.currentChartBuffer = createChartBuffer(g2, bufferSize);</span>
+<span class="nc" id="L306">                clearChartBuffer(currentChartBuffer);</span>
+<span class="nc" id="L307">                setRefreshBuffer(true);</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">            } else if ((this.currentChartBuffer.getWidth() != bufferSize.width)</span>
+                    || (this.currentChartBuffer
+<span class="nc bnc" id="L310" title="All 2 branches missed.">                            .getHeight() != bufferSize.height)) {</span>
+<span class="nc" id="L311">                setRefreshBuffer(true);</span>
+            }
+
+            // do we need to redraw the buffer?
+<span class="nc bnc" id="L315" title="All 2 branches missed.">            if (getRefreshBuffer()) {</span>
+<span class="nc" id="L316">                setRefreshBuffer(false); // clear the flag</span>
+
+                // Rendering is done offline, hence it requires a fresh buffer
+                // and rendering info
+<span class="nc" id="L320">                BufferedImage rendererBuffer = createChartBuffer(g2,</span>
+                        bufferSize);
+<span class="nc" id="L322">                ChartRenderingInfo rendererInfo = info;</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">                if (rendererInfo != null) {</span>
+                    // As the chart will be re-rendered, the current chart
+                    // entities cannot be trusted
+<span class="nc" id="L326">                    final EntityCollection entityCollection = </span>
+<span class="nc" id="L327">                            rendererInfo.getEntityCollection();</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">                    if (entityCollection != null) {</span>
+<span class="nc" id="L329">                        entityCollection.clear();</span>
+                    }
+
+                    // Offline rendering requires its own instance of
+                    // ChartRenderingInfo, using clone if possible
+                    try {
+<span class="nc" id="L335">                        rendererInfo = rendererInfo.clone();</span>
+<span class="nc" id="L336">                    } catch (CloneNotSupportedException e) {</span>
+                        // Not expected
+<span class="nc" id="L338">                        e.printStackTrace();</span>
+<span class="nc" id="L339">                        rendererInfo = new ChartRenderingInfo();</span>
+<span class="nc" id="L340">                    }</span>
+                }
+
+<span class="nc" id="L343">                OfflineChartRenderer offlineRenderer = new OfflineChartRenderer(</span>
+<span class="nc" id="L344">                        getChart(), rendererBuffer, chartSize, anchor,</span>
+                        rendererInfo);
+<span class="nc" id="L346">                state = state.renderOffline(this, offlineRenderer);</span>
+            }
+
+            // Copy the rendered ChartRenderingInfo into the passed info
+            // argument and mark that we have done so.
+<span class="nc" id="L351">            copyChartRenderingInfo(this.currentChartRenderingInfo, info);</span>
+<span class="nc" id="L352">            this.currentChartRenderingInfo = info;</span>
+
+<span class="nc" id="L354">            return this.currentChartBuffer;</span>
+        }
+    }
+
+    private class OfflineChartRenderer extends SwingWorker&lt;Object, Object&gt; {
+        private final JFreeChart chart;
+        private final BufferedImage buffer;
+        private final Dimension chartSize;
+        private final Point2D anchor;
+        private final ChartRenderingInfo info;
+
+        public OfflineChartRenderer(JFreeChart chart, BufferedImage image,
+<span class="nc" id="L366">                Dimension chartSize, Point2D anchor, ChartRenderingInfo info) {</span>
+<span class="nc" id="L367">            this.chart = chart;</span>
+<span class="nc" id="L368">            this.buffer = image;</span>
+<span class="nc" id="L369">            this.chartSize = chartSize;</span>
+<span class="nc" id="L370">            this.anchor = anchor;</span>
+<span class="nc" id="L371">            this.info = info;</span>
+<span class="nc" id="L372">        }</span>
+
+        @Override
+        protected Object doInBackground() throws Exception {
+<span class="nc" id="L376">            clearChartBuffer(buffer);</span>
+
+<span class="nc" id="L378">            Graphics2D bufferG2 = buffer.createGraphics();</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">            if ((this.buffer.getWidth() != this.chartSize.width)</span>
+<span class="nc bnc" id="L380" title="All 2 branches missed.">                    || (this.buffer.getHeight() != this.chartSize.height)) {</span>
+                // Scale the chart to fit the buffer
+<span class="nc" id="L382">                bufferG2.scale(</span>
+<span class="nc" id="L383">                        this.buffer.getWidth() / this.chartSize.getWidth(),</span>
+<span class="nc" id="L384">                        this.buffer.getHeight() / this.chartSize.getHeight());</span>
+            }
+<span class="nc" id="L386">            Rectangle chartArea = new Rectangle(this.chartSize);</span>
+
+<span class="nc" id="L388">            this.chart.draw(bufferG2, chartArea, this.anchor, this.info);</span>
+<span class="nc" id="L389">            bufferG2.dispose();</span>
+
+            // Return type is not used
+<span class="nc" id="L392">            return null;</span>
+        }
+
+        @Override
+        protected void done() {
+<span class="nc" id="L397">            synchronized (state) {</span>
+<span class="nc" id="L398">                state = state.offlineRenderingDone(</span>
+                        OfflineRenderingChartPanel.this, this);
+<span class="nc" id="L400">            }</span>
+<span class="nc" id="L401">        }</span>
+    }
+
+    @Override
+    public void setCursor(Cursor cursor) {
+<span class="nc" id="L406">        super.setCursor(cursor);</span>
+
+        // Buggy mouse cursor: setting both behaves as expected
+<span class="nc" id="L409">        Container root = getTopLevelAncestor();</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">        if (null != root) {</span>
+<span class="nc" id="L411">            root.setCursor(cursor);</span>
+        }
+<span class="nc" id="L413">    }</span>
+
+    private static void copyChartRenderingInfo(ChartRenderingInfo source,
+            ChartRenderingInfo target) {
+<span class="nc bnc" id="L417" title="All 6 branches missed.">        if (source == null || target == null || source == target) {</span>
+            // Nothing to do
+<span class="nc" id="L419">            return;</span>
+        }
+<span class="nc" id="L421">        target.clear();</span>
+<span class="nc" id="L422">        target.setChartArea(source.getChartArea());</span>
+<span class="nc" id="L423">        target.setEntityCollection(source.getEntityCollection());</span>
+<span class="nc" id="L424">        copyPlotRenderingInfo(source.getPlotInfo(), target.getPlotInfo());</span>
+<span class="nc" id="L425">    }</span>
+
+    private static void copyPlotRenderingInfo(PlotRenderingInfo source,
+            PlotRenderingInfo target) {
+<span class="nc" id="L429">        target.setDataArea(source.getDataArea());</span>
+<span class="nc" id="L430">        target.setPlotArea(source.getPlotArea());</span>
+<span class="nc bnc" id="L431" title="All 2 branches missed.">        for (int i = 0; i &lt; target.getSubplotCount(); i++) {</span>
+<span class="nc" id="L432">            PlotRenderingInfo subSource = source.getSubplotInfo(i);</span>
+<span class="nc" id="L433">            PlotRenderingInfo subTarget = new PlotRenderingInfo(</span>
+<span class="nc" id="L434">                    target.getOwner());</span>
+<span class="nc" id="L435">            copyPlotRenderingInfo(subSource, subTarget);</span>
+<span class="nc" id="L436">            target.addSubplotInfo(subTarget);</span>
+        }
+<span class="nc" id="L438">    }</span>
+
+    private static BufferedImage createChartBuffer(Graphics2D g2,
+            Dimension bufferSize) {
+<span class="nc" id="L442">        GraphicsConfiguration gc = g2.getDeviceConfiguration();</span>
+<span class="nc" id="L443">        return gc.createCompatibleImage(bufferSize.width, bufferSize.height,</span>
+                Transparency.TRANSLUCENT);
+    }
+
+    private static void clearChartBuffer(BufferedImage buffer) {
+<span class="nc" id="L448">        Graphics2D bufferG2 = buffer.createGraphics();</span>
+        // make the background of the buffer clear and transparent
+<span class="nc" id="L450">        bufferG2.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));</span>
+<span class="nc" id="L451">        bufferG2.fill(new Rectangle(buffer.getWidth(), buffer.getHeight()));</span>
+<span class="nc" id="L452">        bufferG2.dispose();</span>
+<span class="nc" id="L453">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

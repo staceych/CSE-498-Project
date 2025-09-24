@@ -1,0 +1,657 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractBlock.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart.block</a> &gt; <span class="el_source">AbstractBlock.java</span></div><h1>AbstractBlock.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ------------------
+ * AbstractBlock.java
+ * ------------------
+ * (C) Copyright 2004-present, by David Gilbert.
+ *
+ * Original Author:  David Gilbert;
+ * Contributor(s):   Tracy Hiltbrand (equals/hashCode comply with EqualsVerifier);
+ *
+ */
+
+package org.jfree.chart.block;
+
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.Objects;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.chart.ui.Size2D;
+import org.jfree.chart.util.Args;
+import org.jfree.chart.util.PublicCloneable;
+import org.jfree.chart.util.SerialUtils;
+import org.jfree.chart.util.ShapeUtils;
+
+import org.jfree.data.Range;
+
+/**
+ * A convenience class for creating new classes that implement
+ * the {@link Block} interface.
+ */
+public class AbstractBlock implements Cloneable, Serializable {
+
+    /** For serialization. */
+    private static final long serialVersionUID = 7689852412141274563L;
+
+    /** The id for the block. */
+    private String id;
+
+    /** The margin around the outside of the block. */
+    private RectangleInsets margin;
+
+    /** The frame (or border) for the block. */
+    private BlockFrame frame;
+
+    /** The padding between the block content and the border. */
+    private RectangleInsets padding;
+
+    /**
+     * The natural width of the block (may be overridden if there are
+     * constraints in sizing).
+     */
+    private double width;
+
+    /**
+     * The natural height of the block (may be overridden if there are
+     * constraints in sizing).
+     */
+    private double height;
+
+    /**
+     * The current bounds for the block (position of the block in Java2D space).
+     */
+    private transient Rectangle2D bounds;
+
+    /**
+     * Creates a new block.
+     */
+<span class="fc" id="L96">    protected AbstractBlock() {</span>
+<span class="fc" id="L97">        this.id = null;</span>
+<span class="fc" id="L98">        this.width = 0.0;</span>
+<span class="fc" id="L99">        this.height = 0.0;</span>
+<span class="fc" id="L100">        this.bounds = new Rectangle2D.Float();</span>
+<span class="fc" id="L101">        this.margin = RectangleInsets.ZERO_INSETS;</span>
+<span class="fc" id="L102">        this.frame = BlockBorder.NONE;</span>
+<span class="fc" id="L103">        this.padding = RectangleInsets.ZERO_INSETS;</span>
+<span class="fc" id="L104">    }</span>
+
+    /**
+     * Returns the id.
+     *
+     * @return The id (possibly {@code null}).
+     *
+     * @see #setID(String)
+     */
+    public String getID() {
+<span class="nc" id="L114">        return this.id;</span>
+    }
+
+    /**
+     * Sets the id for the block.
+     *
+     * @param id  the id ({@code null} permitted).
+     *
+     * @see #getID()
+     */
+    public void setID(String id) {
+<span class="fc" id="L125">        this.id = id;</span>
+<span class="fc" id="L126">    }</span>
+
+    /**
+     * Returns the natural width of the block, if this is known in advance.
+     * The actual width of the block may be overridden if layout constraints
+     * make this necessary.
+     *
+     * @return The width.
+     *
+     * @see #setWidth(double)
+     */
+    public double getWidth() {
+<span class="fc" id="L138">        return this.width;</span>
+    }
+
+    /**
+     * Sets the natural width of the block, if this is known in advance.
+     *
+     * @param width  the width (in Java2D units)
+     *
+     * @see #getWidth()
+     */
+    public void setWidth(double width) {
+<span class="fc" id="L149">        this.width = width;</span>
+<span class="fc" id="L150">    }</span>
+
+    /**
+     * Returns the natural height of the block, if this is known in advance.
+     * The actual height of the block may be overridden if layout constraints
+     * make this necessary.
+     *
+     * @return The height.
+     *
+     * @see #setHeight(double)
+     */
+    public double getHeight() {
+<span class="fc" id="L162">        return this.height;</span>
+    }
+
+    /**
+     * Sets the natural width of the block, if this is known in advance.
+     *
+     * @param height  the width (in Java2D units)
+     *
+     * @see #getHeight()
+     */
+    public void setHeight(double height) {
+<span class="fc" id="L173">        this.height = height;</span>
+<span class="fc" id="L174">    }</span>
+
+    /**
+     * Returns the margin.
+     *
+     * @return The margin (never {@code null}).
+     *
+     * @see #getMargin()
+     */
+    public RectangleInsets getMargin() {
+<span class="nc" id="L184">        return this.margin;</span>
+    }
+
+    /**
+     * Sets the margin (use {@link RectangleInsets#ZERO_INSETS} for no
+     * padding).
+     *
+     * @param margin  the margin ({@code null} not permitted).
+     *
+     * @see #getMargin()
+     */
+    public void setMargin(RectangleInsets margin) {
+<span class="fc" id="L196">        Args.nullNotPermitted(margin, &quot;margin&quot;);</span>
+<span class="fc" id="L197">        this.margin = margin;</span>
+<span class="fc" id="L198">    }</span>
+
+    /**
+     * Sets the margin.
+     *
+     * @param top  the top margin.
+     * @param left  the left margin.
+     * @param bottom  the bottom margin.
+     * @param right  the right margin.
+     *
+     * @see #getMargin()
+     */
+    public void setMargin(double top, double left, double bottom, 
+            double right) {
+<span class="nc" id="L212">        setMargin(new RectangleInsets(top, left, bottom, right));</span>
+<span class="nc" id="L213">    }</span>
+
+    /**
+     * Sets a black border with the specified line widths.
+     *
+     * @param top  the top border line width.
+     * @param left  the left border line width.
+     * @param bottom  the bottom border line width.
+     * @param right  the right border line width.
+     */
+    public void setBorder(double top, double left, double bottom,
+                          double right) {
+<span class="nc" id="L225">        setFrame(new BlockBorder(top, left, bottom, right));</span>
+<span class="nc" id="L226">    }</span>
+
+    /**
+     * Returns the current frame (border).
+     *
+     * @return The frame.
+     *
+     * @see #setFrame(BlockFrame)
+     */
+    public BlockFrame getFrame() {
+<span class="fc" id="L236">        return this.frame;</span>
+    }
+
+    /**
+     * Sets the frame (or border).
+     *
+     * @param frame  the frame ({@code null} not permitted).
+     *
+     * @see #getFrame()
+     */
+    public void setFrame(BlockFrame frame) {
+<span class="fc" id="L247">        Args.nullNotPermitted(frame, &quot;frame&quot;);</span>
+<span class="fc" id="L248">        this.frame = frame;</span>
+<span class="fc" id="L249">    }</span>
+
+    /**
+     * Returns the padding.
+     *
+     * @return The padding (never {@code null}).
+     *
+     * @see #setPadding(RectangleInsets)
+     */
+    public RectangleInsets getPadding() {
+<span class="nc" id="L259">        return this.padding;</span>
+    }
+
+    /**
+     * Sets the padding (use {@link RectangleInsets#ZERO_INSETS} for no
+     * padding).
+     *
+     * @param padding  the padding ({@code null} not permitted).
+     *
+     * @see #getPadding()
+     */
+    public void setPadding(RectangleInsets padding) {
+<span class="fc" id="L271">        Args.nullNotPermitted(padding, &quot;padding&quot;);</span>
+<span class="fc" id="L272">        this.padding = padding;</span>
+<span class="fc" id="L273">    }</span>
+
+    /**
+     * Sets the padding.
+     *
+     * @param top  the top padding.
+     * @param left  the left padding.
+     * @param bottom  the bottom padding.
+     * @param right  the right padding.
+     */
+    public void setPadding(double top, double left, double bottom,
+                           double right) {
+<span class="fc" id="L285">        setPadding(new RectangleInsets(top, left, bottom, right));</span>
+<span class="fc" id="L286">    }</span>
+
+    /**
+     * Returns the x-offset for the content within the block.
+     *
+     * @return The x-offset.
+     *
+     * @see #getContentYOffset()
+     */
+    public double getContentXOffset() {
+<span class="nc" id="L296">        return this.margin.getLeft() + this.frame.getInsets().getLeft()</span>
+<span class="nc" id="L297">            + this.padding.getLeft();</span>
+    }
+
+    /**
+     * Returns the y-offset for the content within the block.
+     *
+     * @return The y-offset.
+     *
+     * @see #getContentXOffset()
+     */
+    public double getContentYOffset() {
+<span class="nc" id="L308">        return this.margin.getTop() + this.frame.getInsets().getTop()</span>
+<span class="nc" id="L309">            + this.padding.getTop();</span>
+    }
+
+    /**
+     * Arranges the contents of the block, with no constraints, and returns
+     * the block size.
+     *
+     * @param g2  the graphics device.
+     *
+     * @return The block size (in Java2D units, never {@code null}).
+     */
+    public Size2D arrange(Graphics2D g2) {
+<span class="fc" id="L321">        return arrange(g2, RectangleConstraint.NONE);</span>
+    }
+
+    /**
+     * Arranges the contents of the block, within the given constraints, and
+     * returns the block size.
+     *
+     * @param g2  the graphics device.
+     * @param constraint  the constraint ({@code null} not permitted).
+     *
+     * @return The block size (in Java2D units, never {@code null}).
+     */
+    public Size2D arrange(Graphics2D g2, RectangleConstraint constraint) {
+<span class="nc" id="L334">        Size2D base = new Size2D(getWidth(), getHeight());</span>
+<span class="nc" id="L335">        return constraint.calculateConstrainedSize(base);</span>
+    }
+
+    /**
+     * Returns the current bounds of the block.
+     *
+     * @return The bounds.
+     *
+     * @see #setBounds(Rectangle2D)
+     */
+    public Rectangle2D getBounds() {
+<span class="fc" id="L346">        return this.bounds;</span>
+    }
+
+    /**
+     * Sets the bounds of the block.
+     *
+     * @param bounds  the bounds ({@code null} not permitted).
+     *
+     * @see #getBounds()
+     */
+    public void setBounds(Rectangle2D bounds) {
+<span class="fc" id="L357">        Args.nullNotPermitted(bounds, &quot;bounds&quot;);</span>
+<span class="fc" id="L358">        this.bounds = bounds;</span>
+<span class="fc" id="L359">    }</span>
+
+    /**
+     * Calculate the width available for content after subtracting
+     * the margin, border and padding space from the specified fixed
+     * width.
+     *
+     * @param fixedWidth  the fixed width.
+     *
+     * @return The available space.
+     *
+     * @see #trimToContentHeight(double)
+     */
+    protected double trimToContentWidth(double fixedWidth) {
+<span class="fc" id="L373">        double result = this.margin.trimWidth(fixedWidth);</span>
+<span class="fc" id="L374">        result = this.frame.getInsets().trimWidth(result);</span>
+<span class="fc" id="L375">        result = this.padding.trimWidth(result);</span>
+<span class="fc" id="L376">        return Math.max(result, 0.0);</span>
+    }
+
+    /**
+     * Calculate the height available for content after subtracting
+     * the margin, border and padding space from the specified fixed
+     * height.
+     *
+     * @param fixedHeight  the fixed height.
+     *
+     * @return The available space.
+     *
+     * @see #trimToContentWidth(double)
+     */
+    protected double trimToContentHeight(double fixedHeight) {
+<span class="fc" id="L391">        double result = this.margin.trimHeight(fixedHeight);</span>
+<span class="fc" id="L392">        result = this.frame.getInsets().trimHeight(result);</span>
+<span class="fc" id="L393">        result = this.padding.trimHeight(result);</span>
+<span class="fc" id="L394">        return Math.max(result, 0.0);</span>
+    }
+
+    /**
+     * Returns a constraint for the content of this block that will result in
+     * the bounds of the block matching the specified constraint.
+     *
+     * @param c  the outer constraint ({@code null} not permitted).
+     *
+     * @return The content constraint.
+     */
+    protected RectangleConstraint toContentConstraint(RectangleConstraint c) {
+<span class="fc" id="L406">        Args.nullNotPermitted(c, &quot;c&quot;);</span>
+<span class="fc bfc" id="L407" title="All 2 branches covered.">        if (c.equals(RectangleConstraint.NONE)) {</span>
+<span class="fc" id="L408">            return c;</span>
+        }
+<span class="fc" id="L410">        double w = c.getWidth();</span>
+<span class="fc" id="L411">        Range wr = c.getWidthRange();</span>
+<span class="fc" id="L412">        double h = c.getHeight();</span>
+<span class="fc" id="L413">        Range hr = c.getHeightRange();</span>
+<span class="fc" id="L414">        double ww = trimToContentWidth(w);</span>
+<span class="fc" id="L415">        double hh = trimToContentHeight(h);</span>
+<span class="fc" id="L416">        Range wwr = trimToContentWidth(wr);</span>
+<span class="fc" id="L417">        Range hhr = trimToContentHeight(hr);</span>
+<span class="fc" id="L418">        return new RectangleConstraint(ww, wwr, c.getWidthConstraintType(),</span>
+<span class="fc" id="L419">            hh, hhr, c.getHeightConstraintType());</span>
+    }
+
+    private Range trimToContentWidth(Range r) {
+<span class="fc bfc" id="L423" title="All 2 branches covered.">        if (r == null) {</span>
+<span class="fc" id="L424">            return null;</span>
+        }
+<span class="fc" id="L426">        double lowerBound = 0.0;</span>
+<span class="fc" id="L427">        double upperBound = Double.POSITIVE_INFINITY;</span>
+<span class="fc bfc" id="L428" title="All 2 branches covered.">        if (r.getLowerBound() &gt; 0.0) {</span>
+<span class="fc" id="L429">            lowerBound = trimToContentWidth(r.getLowerBound());</span>
+        }
+<span class="pc bpc" id="L431" title="1 of 2 branches missed.">        if (r.getUpperBound() &lt; Double.POSITIVE_INFINITY) {</span>
+<span class="fc" id="L432">            upperBound = trimToContentWidth(r.getUpperBound());</span>
+        }
+<span class="fc" id="L434">        return new Range(lowerBound, upperBound);</span>
+    }
+
+    private Range trimToContentHeight(Range r) {
+<span class="fc bfc" id="L438" title="All 2 branches covered.">        if (r == null) {</span>
+<span class="fc" id="L439">            return null;</span>
+        }
+<span class="fc" id="L441">        double lowerBound = 0.0;</span>
+<span class="fc" id="L442">        double upperBound = Double.POSITIVE_INFINITY;</span>
+<span class="pc bpc" id="L443" title="1 of 2 branches missed.">        if (r.getLowerBound() &gt; 0.0) {</span>
+<span class="nc" id="L444">            lowerBound = trimToContentHeight(r.getLowerBound());</span>
+        }
+<span class="pc bpc" id="L446" title="1 of 2 branches missed.">        if (r.getUpperBound() &lt; Double.POSITIVE_INFINITY) {</span>
+<span class="fc" id="L447">            upperBound = trimToContentHeight(r.getUpperBound());</span>
+        }
+<span class="fc" id="L449">        return new Range(lowerBound, upperBound);</span>
+    }
+
+    /**
+     * Adds the margin, border and padding to the specified content width.
+     *
+     * @param contentWidth  the content width.
+     *
+     * @return The adjusted width.
+     */
+    protected double calculateTotalWidth(double contentWidth) {
+<span class="fc" id="L460">        double result = contentWidth;</span>
+<span class="fc" id="L461">        result = this.padding.extendWidth(result);</span>
+<span class="fc" id="L462">        result = this.frame.getInsets().extendWidth(result);</span>
+<span class="fc" id="L463">        result = this.margin.extendWidth(result);</span>
+<span class="fc" id="L464">        return result;</span>
+    }
+
+    /**
+     * Adds the margin, border and padding to the specified content height.
+     *
+     * @param contentHeight  the content height.
+     *
+     * @return The adjusted height.
+     */
+    protected double calculateTotalHeight(double contentHeight) {
+<span class="fc" id="L475">        double result = contentHeight;</span>
+<span class="fc" id="L476">        result = this.padding.extendHeight(result);</span>
+<span class="fc" id="L477">        result = this.frame.getInsets().extendHeight(result);</span>
+<span class="fc" id="L478">        result = this.margin.extendHeight(result);</span>
+<span class="fc" id="L479">        return result;</span>
+    }
+
+    /**
+     * Reduces the specified area by the amount of space consumed
+     * by the margin.
+     *
+     * @param area  the area ({@code null} not permitted).
+     *
+     * @return The trimmed area.
+     */
+    protected Rectangle2D trimMargin(Rectangle2D area) {
+        // defer argument checking...
+<span class="fc" id="L492">        this.margin.trim(area);</span>
+<span class="fc" id="L493">        return area;</span>
+    }
+
+    /**
+     * Reduces the specified area by the amount of space consumed
+     * by the border.
+     *
+     * @param area  the area ({@code null} not permitted).
+     *
+     * @return The trimmed area.
+     */
+    protected Rectangle2D trimBorder(Rectangle2D area) {
+        // defer argument checking...
+<span class="fc" id="L506">        this.frame.getInsets().trim(area);</span>
+<span class="fc" id="L507">        return area;</span>
+    }
+
+    /**
+     * Reduces the specified area by the amount of space consumed
+     * by the padding.
+     *
+     * @param area  the area ({@code null} not permitted).
+     *
+     * @return The trimmed area.
+     */
+    protected Rectangle2D trimPadding(Rectangle2D area) {
+        // defer argument checking...
+<span class="fc" id="L520">        this.padding.trim(area);</span>
+<span class="fc" id="L521">        return area;</span>
+    }
+
+    /**
+     * Draws the border around the perimeter of the specified area.
+     *
+     * @param g2  the graphics device.
+     * @param area  the area.
+     */
+    protected void drawBorder(Graphics2D g2, Rectangle2D area) {
+<span class="fc" id="L531">        this.frame.draw(g2, area);</span>
+<span class="fc" id="L532">    }</span>
+
+    /**
+     * Tests this block for equality with an arbitrary object.
+     *
+     * @param obj  the object ({@code null} permitted).
+     *
+     * @return A boolean.
+     */
+    @Override
+    public boolean equals(Object obj) {
+<span class="fc bfc" id="L543" title="All 2 branches covered.">        if (obj == this) {</span>
+<span class="fc" id="L544">            return true;</span>
+        }
+<span class="fc bfc" id="L546" title="All 2 branches covered.">        if (!(obj instanceof AbstractBlock)) {</span>
+<span class="fc" id="L547">            return false;</span>
+        }
+<span class="fc" id="L549">        AbstractBlock that = (AbstractBlock) obj;</span>
+<span class="fc bfc" id="L550" title="All 2 branches covered.">        if (!Objects.equals(this.id, that.id)) {</span>
+<span class="fc" id="L551">            return false;</span>
+        }
+<span class="fc bfc" id="L553" title="All 2 branches covered.">        if (!Objects.equals(this.frame, that.frame)) {</span>
+<span class="fc" id="L554">            return false;</span>
+        }
+<span class="fc bfc" id="L556" title="All 2 branches covered.">        if (!Objects.equals(this.bounds, that.bounds)) {</span>
+<span class="fc" id="L557">            return false;</span>
+        }
+<span class="fc bfc" id="L559" title="All 2 branches covered.">        if (!Objects.equals(this.margin, that.margin)) {</span>
+<span class="fc" id="L560">            return false;</span>
+        }
+<span class="fc bfc" id="L562" title="All 2 branches covered.">        if (!Objects.equals(this.padding, that.padding)) {</span>
+<span class="fc" id="L563">            return false;</span>
+        }
+<span class="fc" id="L565">        if (Double.doubleToLongBits(this.height) !=</span>
+<span class="fc bfc" id="L566" title="All 2 branches covered.">            Double.doubleToLongBits(that.height)) {</span>
+<span class="fc" id="L567">            return false;</span>
+        }
+<span class="fc" id="L569">        if (Double.doubleToLongBits(this.width) !=</span>
+<span class="fc bfc" id="L570" title="All 2 branches covered.">            Double.doubleToLongBits(that.width)) {</span>
+<span class="fc" id="L571">            return false;</span>
+        }
+        
+        // fix the &quot;equals not symmetric&quot; problem
+<span class="fc bfc" id="L575" title="All 2 branches covered.">        if (!that.canEqual(this)) {</span>
+<span class="fc" id="L576">            return false;</span>
+        }
+<span class="fc" id="L578">        return true;</span>
+    }
+
+    /**
+     * Ensures symmetry between super/subclass implementations of equals. For
+     * more detail, see http://jqno.nl/equalsverifier/manual/inheritance.
+     *
+     * @param other Object
+     * 
+     * @return true ONLY if the parameter is THIS class type
+     */
+    public boolean canEqual(Object other) {
+        // fix the &quot;equals not symmetric&quot; problem
+<span class="fc" id="L591">        return (other instanceof AbstractBlock);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L596">        int hash = 3;</span>
+<span class="fc" id="L597">        hash = 89 * hash + Objects.hashCode(this.id);</span>
+<span class="fc" id="L598">        hash = 89 * hash + Objects.hashCode(this.margin);</span>
+<span class="fc" id="L599">        hash = 89 * hash + Objects.hashCode(this.frame);</span>
+<span class="fc" id="L600">        hash = 89 * hash + Objects.hashCode(this.padding);</span>
+<span class="fc" id="L601">        hash = 89 * hash + Objects.hashCode(this.bounds);</span>
+<span class="fc" id="L602">        hash = 89 * hash +</span>
+<span class="fc" id="L603">               (int) (Double.doubleToLongBits(this.width) ^</span>
+<span class="fc" id="L604">                     (Double.doubleToLongBits(this.width) &gt;&gt;&gt; 32));</span>
+<span class="fc" id="L605">        hash = 89 * hash +</span>
+<span class="fc" id="L606">               (int) (Double.doubleToLongBits(this.height) ^</span>
+<span class="fc" id="L607">                     (Double.doubleToLongBits(this.height) &gt;&gt;&gt; 32));</span>
+<span class="fc" id="L608">        return hash;</span>
+    }
+
+    /**
+     * Returns a clone of this block.
+     *
+     * @return A clone.
+     *
+     * @throws CloneNotSupportedException if there is a problem creating the
+     *         clone.
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+<span class="fc" id="L621">        AbstractBlock clone = (AbstractBlock) super.clone();</span>
+<span class="fc" id="L622">        clone.bounds = (Rectangle2D) ShapeUtils.clone(this.bounds);</span>
+<span class="pc bpc" id="L623" title="1 of 2 branches missed.">        if (this.frame instanceof PublicCloneable) {</span>
+<span class="nc" id="L624">            PublicCloneable pc = (PublicCloneable) this.frame;</span>
+<span class="nc" id="L625">            clone.frame = (BlockFrame) pc.clone();</span>
+        }
+<span class="fc" id="L627">        return clone;</span>
+    }
+
+    /**
+     * Provides serialization support.
+     *
+     * @param stream  the output stream.
+     *
+     * @throws IOException if there is an I/O error.
+     */
+    private void writeObject(ObjectOutputStream stream) throws IOException {
+<span class="fc" id="L638">        stream.defaultWriteObject();</span>
+<span class="fc" id="L639">        SerialUtils.writeShape(this.bounds, stream);</span>
+<span class="fc" id="L640">    }</span>
+
+    /**
+     * Provides serialization support.
+     *
+     * @param stream  the input stream.
+     *
+     * @throws IOException  if there is an I/O error.
+     * @throws ClassNotFoundException  if there is a classpath problem.
+     */
+    private void readObject(ObjectInputStream stream)
+        throws IOException, ClassNotFoundException {
+<span class="fc" id="L652">        stream.defaultReadObject();</span>
+<span class="fc" id="L653">        this.bounds = (Rectangle2D) SerialUtils.readShape(stream);</span>
+<span class="fc" id="L654">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

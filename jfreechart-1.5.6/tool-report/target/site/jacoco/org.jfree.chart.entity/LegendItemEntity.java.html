@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LegendItemEntity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart.entity</a> &gt; <span class="el_source">LegendItemEntity.java</span></div><h1>LegendItemEntity.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------------
+ * LegendItemEntity.java
+ * ---------------------
+ * (C) Copyright 2003-present, by David Gilbert and Contributors.
+ *
+ * Original Author:  David Gilbert;
+ * Contributor(s):   Tracy Hiltbrand (equals/hashCode comply with EqualsVerifier);
+ *
+ */
+
+package org.jfree.chart.entity;
+
+import java.awt.Shape;
+import java.io.Serializable;
+import java.util.Objects;
+
+import org.jfree.data.general.Dataset;
+
+/**
+ * An entity that represents an item within a legend.
+ */
+public class LegendItemEntity extends ChartEntity
+                              implements Cloneable, Serializable {
+
+    /** For serialization. */
+    private static final long serialVersionUID = -7435683933545666702L;
+
+    /**
+     * The dataset.
+     */
+    private Dataset dataset;
+
+    /**
+     * The series key.
+     */
+    private Comparable seriesKey;
+
+    /**
+     * Creates a legend item entity.
+     *
+     * @param area  the area.
+     */
+    public LegendItemEntity(Shape area) {
+<span class="fc" id="L70">        super(area);</span>
+<span class="fc" id="L71">    }</span>
+
+    /**
+     * Returns a reference to the dataset that this legend item is derived
+     * from.
+     *
+     * @return The dataset.
+     *
+     * @see #setDataset(Dataset)
+     */
+    public Dataset getDataset() {
+<span class="nc" id="L82">        return this.dataset;</span>
+    }
+
+    /**
+     * Sets a reference to the dataset that this legend item is derived from.
+     *
+     * @param dataset  the dataset.
+     */
+    public void setDataset(Dataset dataset) {
+<span class="fc" id="L91">        this.dataset = dataset;</span>
+<span class="fc" id="L92">    }</span>
+
+    /**
+     * Returns the series key that identifies the legend item.
+     *
+     * @return The series key.
+     *
+     * @see #setSeriesKey(Comparable)
+     */
+    public Comparable getSeriesKey() {
+<span class="nc" id="L102">        return this.seriesKey;</span>
+    }
+
+    /**
+     * Sets the key for the series.
+     *
+     * @param key  the key.
+     *
+     * @see #getSeriesKey()
+     */
+    public void setSeriesKey(Comparable key) {
+<span class="fc" id="L113">        this.seriesKey = key;</span>
+<span class="fc" id="L114">    }</span>
+
+    /**
+     * Tests this object for equality with an arbitrary object.
+     *
+     * @param obj  the object ({@code null} permitted).
+     *
+     * @return A boolean.
+     */
+    @Override
+    public boolean equals(Object obj) {
+<span class="fc bfc" id="L125" title="All 2 branches covered.">        if (obj == this) {</span>
+<span class="fc" id="L126">            return true;</span>
+        }
+<span class="fc bfc" id="L128" title="All 2 branches covered.">        if (!(obj instanceof LegendItemEntity)) {</span>
+<span class="fc" id="L129">            return false;</span>
+        }
+<span class="fc" id="L131">        LegendItemEntity that = (LegendItemEntity) obj;</span>
+
+        // fix the &quot;equals not symmetric&quot; problem
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        if (!that.canEqual(this)) {</span>
+<span class="nc" id="L135">            return false;</span>
+        }
+<span class="fc bfc" id="L137" title="All 2 branches covered.">        if (!Objects.equals(this.seriesKey, that.seriesKey)) {</span>
+<span class="fc" id="L138">            return false;</span>
+        }
+<span class="fc bfc" id="L140" title="All 2 branches covered.">        if (!Objects.equals(this.dataset, that.dataset)) {</span>
+<span class="fc" id="L141">            return false;</span>
+        }
+<span class="fc" id="L143">        return super.equals(obj);</span>
+    }
+
+    /**
+     * Ensures symmetry between super/subclass implementations of equals. For
+     * more detail, see http://jqno.nl/equalsverifier/manual/inheritance.
+     *
+     * @param other Object
+     * 
+     * @return true ONLY if the parameter is THIS class type
+     */
+    @Override
+    public boolean canEqual(Object other) {
+        // Solves Problem: equals not symmetric
+<span class="fc" id="L157">        return (other instanceof LegendItemEntity);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L162">        int hash = super.hashCode(); // equals calls superclass function, so hashCode must also</span>
+<span class="fc" id="L163">        hash = 97 * hash + Objects.hashCode(this.dataset);</span>
+<span class="fc" id="L164">        hash = 97 * hash + Objects.hashCode(this.seriesKey);</span>
+<span class="fc" id="L165">        return hash;</span>
+    }
+
+    /**
+     * Returns a clone of the entity.
+     *
+     * @return A clone.
+     *
+     * @throws CloneNotSupportedException if there is a problem cloning the
+     *         object.
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+<span class="fc" id="L178">        return super.clone();</span>
+    }
+
+    /**
+     * Returns a string representing this object (useful for debugging
+     * purposes).
+     *
+     * @return A string (never {@code null}).
+     */
+    @Override
+    public String toString() {
+<span class="nc" id="L189">        return &quot;LegendItemEntity: seriesKey=&quot; + this.seriesKey</span>
+                + &quot;, dataset=&quot; + this.dataset;
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

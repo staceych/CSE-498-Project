@@ -1,0 +1,694 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RingPlot.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart.plot</a> &gt; <span class="el_source">RingPlot.java</span></div><h1>RingPlot.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * -------------
+ * RingPlot.java
+ * -------------
+ * (C) Copyright 2004-present, by David Gilbert.
+ *
+ * Original Author:  David Gilbert;
+ * Contributor(s):   Christoph Beck (bug 2121818);
+ *
+ */
+
+package org.jfree.chart.plot;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.awt.geom.Arc2D;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.text.DecimalFormat;
+import java.text.Format;
+import java.util.Objects;
+
+import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.entity.PieSectionEntity;
+import org.jfree.chart.labels.PieToolTipGenerator;
+import org.jfree.chart.text.TextUtils;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.chart.ui.TextAnchor;
+import org.jfree.chart.urls.PieURLGenerator;
+import org.jfree.chart.util.LineUtils;
+import org.jfree.chart.util.PaintUtils;
+import org.jfree.chart.util.Args;
+import org.jfree.chart.util.Rotation;
+import org.jfree.chart.util.SerialUtils;
+import org.jfree.chart.util.ShapeUtils;
+import org.jfree.chart.util.UnitType;
+import org.jfree.data.general.PieDataset;
+
+/**
+ * A customised pie plot that leaves a hole in the middle.
+ */
+public class RingPlot extends PiePlot implements Cloneable, Serializable {
+
+    /** For serialization. */
+    private static final long serialVersionUID = 1556064784129676620L;
+
+    /** The center text mode. */
+<span class="fc" id="L83">    private CenterTextMode centerTextMode = CenterTextMode.NONE;</span>
+    
+    /** 
+     * Text to display in the middle of the chart (used for 
+     * CenterTextMode.FIXED). 
+     */
+    private String centerText;
+    
+    /**
+     * The formatter used when displaying the first data value from the
+     * dataset (CenterTextMode.VALUE).
+     */
+<span class="fc" id="L95">    private Format centerTextFormatter = new DecimalFormat(&quot;0.00&quot;);</span>
+    
+    /** The font used to display the center text. */
+    private Font centerTextFont;
+    
+    /** The color used to display the center text. */
+    private Color centerTextColor;
+    
+    /**
+     * A flag that controls whether separators are drawn between the
+     * sections of the chart.
+     */
+    private boolean separatorsVisible;
+
+    /** The stroke used to draw separators. */
+    private transient Stroke separatorStroke;
+
+    /** The paint used to draw separators. */
+    private transient Paint separatorPaint;
+
+    /**
+     * The length of the inner separator extension (as a percentage of the
+     * depth of the sections).
+     */
+    private double innerSeparatorExtension;
+
+    /**
+     * The length of the outer separator extension (as a percentage of the
+     * depth of the sections).
+     */
+    private double outerSeparatorExtension;
+
+    /**
+     * The depth of the section as a percentage of the diameter.
+     */
+    private double sectionDepth;
+
+    /**
+     * Creates a new plot with a {@code null} dataset.
+     */
+    public RingPlot() {
+<span class="fc" id="L136">        this(null);</span>
+<span class="fc" id="L137">    }</span>
+
+    /**
+     * Creates a new plot for the specified dataset.
+     *
+     * @param dataset  the dataset ({@code null} permitted).
+     */
+    public RingPlot(PieDataset dataset) {
+<span class="fc" id="L145">        super(dataset);</span>
+<span class="fc" id="L146">        this.centerTextMode = CenterTextMode.NONE;</span>
+<span class="fc" id="L147">        this.centerText = null;</span>
+<span class="fc" id="L148">        this.centerTextFormatter = new DecimalFormat(&quot;0.00&quot;);</span>
+<span class="fc" id="L149">        this.centerTextFont = DEFAULT_LABEL_FONT;</span>
+<span class="fc" id="L150">        this.centerTextColor = Color.BLACK;</span>
+<span class="fc" id="L151">        this.separatorsVisible = true;</span>
+<span class="fc" id="L152">        this.separatorStroke = new BasicStroke(0.5f);</span>
+<span class="fc" id="L153">        this.separatorPaint = Color.GRAY;</span>
+<span class="fc" id="L154">        this.innerSeparatorExtension = 0.20;  // 20%</span>
+<span class="fc" id="L155">        this.outerSeparatorExtension = 0.20;  // 20%</span>
+<span class="fc" id="L156">        this.sectionDepth = 0.20; // 20%</span>
+<span class="fc" id="L157">    }</span>
+
+    /**
+     * Returns the mode for displaying text in the center of the plot.  The
+     * default value is {@link CenterTextMode#NONE} therefore no text
+     * will be displayed by default.
+     * 
+     * @return The mode (never {@code null}).
+     */
+    public CenterTextMode getCenterTextMode() {
+<span class="nc" id="L167">        return this.centerTextMode;</span>
+    }
+    
+    /**
+     * Sets the mode for displaying text in the center of the plot and sends 
+     * a change event to all registered listeners.  For
+     * {@link CenterTextMode#FIXED}, the display text will come from the 
+     * {@code centerText} attribute (see {@link #getCenterText()}).
+     * For {@link CenterTextMode#VALUE}, the center text will be the value from
+     * the first section in the dataset.
+     * 
+     * @param mode  the mode ({@code null} not permitted).
+     */
+    public void setCenterTextMode(CenterTextMode mode) {
+<span class="fc" id="L181">        Args.nullNotPermitted(mode, &quot;mode&quot;);</span>
+<span class="fc" id="L182">        this.centerTextMode = mode;</span>
+<span class="fc" id="L183">        fireChangeEvent();</span>
+<span class="fc" id="L184">    }</span>
+    
+    /**
+     * Returns the text to display in the center of the plot when the mode
+     * is {@link CenterTextMode#FIXED}.
+     * 
+     * @return The text (possibly {@code null}).
+     */
+    public String getCenterText() {
+<span class="nc" id="L193">        return this.centerText;</span>
+    }
+    
+    /**
+     * Sets the text to display in the center of the plot and sends a
+     * change event to all registered listeners.  If the text is set to 
+     * {@code null}, no text will be displayed.
+     * 
+     * @param text  the text ({@code null} permitted).
+     */
+    public void setCenterText(String text) {
+<span class="fc" id="L204">        this.centerText = text;</span>
+<span class="fc" id="L205">        fireChangeEvent();</span>
+<span class="fc" id="L206">    }</span>
+    
+    /**
+     * Returns the formatter used to format the center text value for the mode
+     * {@link CenterTextMode#VALUE}.  The default value is 
+     * {@code DecimalFormat(&quot;0.00&quot;)}.
+     * 
+     * @return The formatter (never {@code null}).
+     */
+    public Format getCenterTextFormatter() {
+<span class="nc" id="L216">        return this.centerTextFormatter;</span>
+    }
+    
+    /**
+     * Sets the formatter used to format the center text value and sends a
+     * change event to all registered listeners.
+     * 
+     * @param formatter  the formatter ({@code null} not permitted).
+     */
+    public void setCenterTextFormatter(Format formatter) {
+<span class="fc" id="L226">        Args.nullNotPermitted(formatter, &quot;formatter&quot;);</span>
+<span class="fc" id="L227">        this.centerTextFormatter = formatter;</span>
+<span class="fc" id="L228">    }</span>
+    
+    /**
+     * Returns the font used to display the center text.  The default value
+     * is {@link PiePlot#DEFAULT_LABEL_FONT}.
+     * 
+     * @return The font (never {@code null}).
+     */
+    public Font getCenterTextFont() {
+<span class="nc" id="L237">        return this.centerTextFont;</span>
+    }
+    
+    /**
+     * Sets the font used to display the center text and sends a change event
+     * to all registered listeners.
+     * 
+     * @param font  the font ({@code null} not permitted).
+     */
+    public void setCenterTextFont(Font font) {
+<span class="fc" id="L247">        Args.nullNotPermitted(font, &quot;font&quot;);</span>
+<span class="fc" id="L248">        this.centerTextFont = font;</span>
+<span class="fc" id="L249">        fireChangeEvent();</span>
+<span class="fc" id="L250">    }</span>
+    
+    /**
+     * Returns the color for the center text.  The default value is
+     * {@code Color.BLACK}.
+     * 
+     * @return The color (never {@code null}). 
+     */
+    public Color getCenterTextColor() {
+<span class="nc" id="L259">        return this.centerTextColor;</span>
+    }
+    
+    /**
+     * Sets the color for the center text and sends a change event to all 
+     * registered listeners.
+     * 
+     * @param color  the color ({@code null} not permitted).
+     */
+    public void setCenterTextColor(Color color) {
+<span class="fc" id="L269">        Args.nullNotPermitted(color, &quot;color&quot;);</span>
+<span class="fc" id="L270">        this.centerTextColor = color;</span>
+<span class="fc" id="L271">        fireChangeEvent();</span>
+<span class="fc" id="L272">    }</span>
+    
+    /**
+     * Returns a flag that indicates whether separators are drawn between
+     * the sections in the chart.
+     *
+     * @return A boolean.
+     *
+     * @see #setSeparatorsVisible(boolean)
+     */
+    public boolean getSeparatorsVisible() {
+<span class="nc" id="L283">        return this.separatorsVisible;</span>
+    }
+
+    /**
+     * Sets the flag that controls whether separators are drawn between
+     * the sections in the chart, and sends a change event to all registered 
+     * listeners.
+     *
+     * @param visible  the flag.
+     *
+     * @see #getSeparatorsVisible()
+     */
+    public void setSeparatorsVisible(boolean visible) {
+<span class="fc" id="L296">        this.separatorsVisible = visible;</span>
+<span class="fc" id="L297">        fireChangeEvent();</span>
+<span class="fc" id="L298">    }</span>
+
+    /**
+     * Returns the separator stroke.
+     *
+     * @return The stroke (never {@code null}).
+     *
+     * @see #setSeparatorStroke(Stroke)
+     */
+    public Stroke getSeparatorStroke() {
+<span class="nc" id="L308">        return this.separatorStroke;</span>
+    }
+
+    /**
+     * Sets the stroke used to draw the separator between sections and sends
+     * a change event to all registered listeners.
+     *
+     * @param stroke  the stroke ({@code null} not permitted).
+     *
+     * @see #getSeparatorStroke()
+     */
+    public void setSeparatorStroke(Stroke stroke) {
+<span class="fc" id="L320">        Args.nullNotPermitted(stroke, &quot;stroke&quot;);</span>
+<span class="fc" id="L321">        this.separatorStroke = stroke;</span>
+<span class="fc" id="L322">        fireChangeEvent();</span>
+<span class="fc" id="L323">    }</span>
+
+    /**
+     * Returns the separator paint.
+     *
+     * @return The paint (never {@code null}).
+     *
+     * @see #setSeparatorPaint(Paint)
+     */
+    public Paint getSeparatorPaint() {
+<span class="nc" id="L333">        return this.separatorPaint;</span>
+    }
+
+    /**
+     * Sets the paint used to draw the separator between sections and sends a
+     * change event to all registered listeners.
+     *
+     * @param paint  the paint ({@code null} not permitted).
+     *
+     * @see #getSeparatorPaint()
+     */
+    public void setSeparatorPaint(Paint paint) {
+<span class="fc" id="L345">        Args.nullNotPermitted(paint, &quot;paint&quot;);</span>
+<span class="fc" id="L346">        this.separatorPaint = paint;</span>
+<span class="fc" id="L347">        fireChangeEvent();</span>
+<span class="fc" id="L348">    }</span>
+
+    /**
+     * Returns the length of the inner extension of the separator line that
+     * is drawn between sections, expressed as a percentage of the depth of
+     * the section.
+     *
+     * @return The inner separator extension (as a percentage).
+     *
+     * @see #setInnerSeparatorExtension(double)
+     */
+    public double getInnerSeparatorExtension() {
+<span class="nc" id="L360">        return this.innerSeparatorExtension;</span>
+    }
+
+    /**
+     * Sets the length of the inner extension of the separator line that is
+     * drawn between sections, as a percentage of the depth of the
+     * sections, and sends a change event to all registered listeners.
+     *
+     * @param percent  the percentage.
+     *
+     * @see #getInnerSeparatorExtension()
+     * @see #setOuterSeparatorExtension(double)
+     */
+    public void setInnerSeparatorExtension(double percent) {
+<span class="fc" id="L374">        this.innerSeparatorExtension = percent;</span>
+<span class="fc" id="L375">        fireChangeEvent();</span>
+<span class="fc" id="L376">    }</span>
+
+    /**
+     * Returns the length of the outer extension of the separator line that
+     * is drawn between sections, expressed as a percentage of the depth of
+     * the section.
+     *
+     * @return The outer separator extension (as a percentage).
+     *
+     * @see #setOuterSeparatorExtension(double)
+     */
+    public double getOuterSeparatorExtension() {
+<span class="nc" id="L388">        return this.outerSeparatorExtension;</span>
+    }
+
+    /**
+     * Sets the length of the outer extension of the separator line that is
+     * drawn between sections, as a percentage of the depth of the
+     * sections, and sends a change event to all registered listeners.
+     *
+     * @param percent  the percentage.
+     *
+     * @see #getOuterSeparatorExtension()
+     */
+    public void setOuterSeparatorExtension(double percent) {
+<span class="fc" id="L401">        this.outerSeparatorExtension = percent;</span>
+<span class="fc" id="L402">        fireChangeEvent();</span>
+<span class="fc" id="L403">    }</span>
+
+    /**
+     * Returns the depth of each section, expressed as a percentage of the
+     * plot radius.
+     *
+     * @return The depth of each section.
+     *
+     * @see #setSectionDepth(double)
+     */
+    public double getSectionDepth() {
+<span class="nc" id="L414">        return this.sectionDepth;</span>
+    }
+
+    /**
+     * The section depth is given as percentage of the plot radius.
+     * Specifying 1.0 results in a straightforward pie chart.
+     *
+     * @param sectionDepth  the section depth.
+     *
+     * @see #getSectionDepth()
+     */
+    public void setSectionDepth(double sectionDepth) {
+<span class="fc" id="L426">        this.sectionDepth = sectionDepth;</span>
+<span class="fc" id="L427">        fireChangeEvent();</span>
+<span class="fc" id="L428">    }</span>
+
+    /**
+     * Initialises the plot state (which will store the total of all dataset
+     * values, among other things).  This method is called once at the
+     * beginning of each drawing.
+     *
+     * @param g2  the graphics device.
+     * @param plotArea  the plot area ({@code null} not permitted).
+     * @param plot  the plot.
+     * @param index  the secondary index ({@code null} for primary
+     *               renderer).
+     * @param info  collects chart rendering information for return to caller.
+     *
+     * @return A state object (maintains state information relevant to one
+     *         chart drawing).
+     */
+    @Override
+    public PiePlotState initialise(Graphics2D g2, Rectangle2D plotArea,
+            PiePlot plot, Integer index, PlotRenderingInfo info) {
+<span class="nc" id="L448">        PiePlotState state = super.initialise(g2, plotArea, plot, index, info);</span>
+<span class="nc" id="L449">        state.setPassesRequired(3);</span>
+<span class="nc" id="L450">        return state;</span>
+    }
+
+    /**
+     * Draws a single data item.
+     *
+     * @param g2  the graphics device ({@code null} not permitted).
+     * @param section  the section index.
+     * @param dataArea  the data plot area.
+     * @param state  state information for one chart.
+     * @param currentPass  the current pass index.
+     */
+    @Override
+    protected void drawItem(Graphics2D g2, int section, Rectangle2D dataArea,
+            PiePlotState state, int currentPass) {
+
+<span class="nc" id="L466">        PieDataset dataset = getDataset();</span>
+<span class="nc" id="L467">        Number n = dataset.getValue(section);</span>
+<span class="nc bnc" id="L468" title="All 2 branches missed.">        if (n == null) {</span>
+<span class="nc" id="L469">            return;</span>
+        }
+<span class="nc" id="L471">        double value = n.doubleValue();</span>
+<span class="nc" id="L472">        double angle1 = 0.0;</span>
+<span class="nc" id="L473">        double angle2 = 0.0;</span>
+
+<span class="nc" id="L475">        Rotation direction = getDirection();</span>
+<span class="nc bnc" id="L476" title="All 2 branches missed.">        if (direction == Rotation.CLOCKWISE) {</span>
+<span class="nc" id="L477">            angle1 = state.getLatestAngle();</span>
+<span class="nc" id="L478">            angle2 = angle1 - value / state.getTotal() * 360.0;</span>
+        }
+<span class="nc bnc" id="L480" title="All 2 branches missed.">        else if (direction == Rotation.ANTICLOCKWISE) {</span>
+<span class="nc" id="L481">            angle1 = state.getLatestAngle();</span>
+<span class="nc" id="L482">            angle2 = angle1 + value / state.getTotal() * 360.0;</span>
+        }
+        else {
+<span class="nc" id="L485">            throw new IllegalStateException(&quot;Rotation type not recognised.&quot;);</span>
+        }
+
+<span class="nc" id="L488">        double angle = (angle2 - angle1);</span>
+<span class="nc bnc" id="L489" title="All 2 branches missed.">        if (Math.abs(angle) &gt; getMinimumArcAngleToDraw()) {</span>
+<span class="nc" id="L490">            Comparable key = getSectionKey(section);</span>
+<span class="nc" id="L491">            double ep = 0.0;</span>
+<span class="nc" id="L492">            double mep = getMaximumExplodePercent();</span>
+<span class="nc bnc" id="L493" title="All 2 branches missed.">            if (mep &gt; 0.0) {</span>
+<span class="nc" id="L494">                ep = getExplodePercent(key) / mep;</span>
+            }
+<span class="nc" id="L496">            Rectangle2D arcBounds = getArcBounds(state.getPieArea(),</span>
+<span class="nc" id="L497">                    state.getExplodedPieArea(), angle1, angle, ep);</span>
+<span class="nc" id="L498">            Arc2D.Double arc = new Arc2D.Double(arcBounds, angle1, angle,</span>
+                    Arc2D.OPEN);
+
+            // create the bounds for the inner arc
+<span class="nc" id="L502">            double depth = this.sectionDepth / 2.0;</span>
+<span class="nc" id="L503">            RectangleInsets s = new RectangleInsets(UnitType.RELATIVE,</span>
+                depth, depth, depth, depth);
+<span class="nc" id="L505">            Rectangle2D innerArcBounds = new Rectangle2D.Double();</span>
+<span class="nc" id="L506">            innerArcBounds.setRect(arcBounds);</span>
+<span class="nc" id="L507">            s.trim(innerArcBounds);</span>
+            // calculate inner arc in reverse direction, for later
+            // GeneralPath construction
+<span class="nc" id="L510">            Arc2D.Double arc2 = new Arc2D.Double(innerArcBounds, angle1</span>
+                    + angle, -angle, Arc2D.OPEN);
+<span class="nc" id="L512">            GeneralPath path = new GeneralPath();</span>
+<span class="nc" id="L513">            path.moveTo((float) arc.getStartPoint().getX(),</span>
+<span class="nc" id="L514">                    (float) arc.getStartPoint().getY());</span>
+<span class="nc" id="L515">            path.append(arc.getPathIterator(null), false);</span>
+<span class="nc" id="L516">            path.append(arc2.getPathIterator(null), true);</span>
+<span class="nc" id="L517">            path.closePath();</span>
+
+<span class="nc" id="L519">            Line2D separator = new Line2D.Double(arc2.getEndPoint(),</span>
+<span class="nc" id="L520">                    arc.getStartPoint());</span>
+
+<span class="nc bnc" id="L522" title="All 2 branches missed.">            if (currentPass == 0) {</span>
+<span class="nc" id="L523">                Paint shadowPaint = getShadowPaint();</span>
+<span class="nc" id="L524">                double shadowXOffset = getShadowXOffset();</span>
+<span class="nc" id="L525">                double shadowYOffset = getShadowYOffset();</span>
+<span class="nc bnc" id="L526" title="All 4 branches missed.">                if (shadowPaint != null &amp;&amp; getShadowGenerator() == null) {</span>
+<span class="nc" id="L527">                    Shape shadowArc = ShapeUtils.createTranslatedShape(</span>
+                            path, (float) shadowXOffset, (float) shadowYOffset);
+<span class="nc" id="L529">                    g2.setPaint(shadowPaint);</span>
+<span class="nc" id="L530">                    g2.fill(shadowArc);</span>
+                }
+<span class="nc" id="L532">            }</span>
+<span class="nc bnc" id="L533" title="All 2 branches missed.">            else if (currentPass == 1) {</span>
+<span class="nc" id="L534">                Paint paint = lookupSectionPaint(key);</span>
+<span class="nc" id="L535">                g2.setPaint(paint);</span>
+<span class="nc" id="L536">                g2.fill(path);</span>
+<span class="nc" id="L537">                Paint outlinePaint = lookupSectionOutlinePaint(key);</span>
+<span class="nc" id="L538">                Stroke outlineStroke = lookupSectionOutlineStroke(key);</span>
+<span class="nc bnc" id="L539" title="All 6 branches missed.">                if (getSectionOutlinesVisible() &amp;&amp; outlinePaint != null </span>
+                        &amp;&amp; outlineStroke != null) {
+<span class="nc" id="L541">                    g2.setPaint(outlinePaint);</span>
+<span class="nc" id="L542">                    g2.setStroke(outlineStroke);</span>
+<span class="nc" id="L543">                    g2.draw(path);</span>
+                }
+                
+<span class="nc bnc" id="L546" title="All 2 branches missed.">                if (section == 0) {</span>
+<span class="nc" id="L547">                    String nstr = null;</span>
+<span class="nc bnc" id="L548" title="All 2 branches missed.">                    if (this.centerTextMode.equals(CenterTextMode.VALUE)) {</span>
+<span class="nc" id="L549">                        nstr = this.centerTextFormatter.format(n);</span>
+<span class="nc bnc" id="L550" title="All 2 branches missed.">                    } else if (this.centerTextMode.equals(CenterTextMode.FIXED)) {</span>
+<span class="nc" id="L551">                        nstr = this.centerText;</span>
+                    }
+<span class="nc bnc" id="L553" title="All 2 branches missed.">                    if (nstr != null) {</span>
+<span class="nc" id="L554">                        g2.setFont(this.centerTextFont);</span>
+<span class="nc" id="L555">                        g2.setPaint(this.centerTextColor);</span>
+<span class="nc" id="L556">                        TextUtils.drawAlignedString(nstr, g2, </span>
+<span class="nc" id="L557">                            (float) dataArea.getCenterX(), </span>
+<span class="nc" id="L558">                            (float) dataArea.getCenterY(),  </span>
+                            TextAnchor.CENTER);                        
+                    }
+                }
+
+                // add an entity for the pie section
+<span class="nc bnc" id="L564" title="All 2 branches missed.">                if (state.getInfo() != null) {</span>
+<span class="nc" id="L565">                    EntityCollection entities = state.getEntityCollection();</span>
+<span class="nc bnc" id="L566" title="All 2 branches missed.">                    if (entities != null) {</span>
+<span class="nc" id="L567">                        String tip = null;</span>
+<span class="nc" id="L568">                        PieToolTipGenerator toolTipGenerator</span>
+<span class="nc" id="L569">                                = getToolTipGenerator();</span>
+<span class="nc bnc" id="L570" title="All 2 branches missed.">                        if (toolTipGenerator != null) {</span>
+<span class="nc" id="L571">                            tip = toolTipGenerator.generateToolTip(dataset,</span>
+                                    key);
+                        }
+<span class="nc" id="L574">                        String url = null;</span>
+<span class="nc" id="L575">                        PieURLGenerator urlGenerator = getURLGenerator();</span>
+<span class="nc bnc" id="L576" title="All 2 branches missed.">                        if (urlGenerator != null) {</span>
+<span class="nc" id="L577">                            url = urlGenerator.generateURL(dataset, key,</span>
+<span class="nc" id="L578">                                    getPieIndex());</span>
+                        }
+<span class="nc" id="L580">                        PieSectionEntity entity = new PieSectionEntity(path,</span>
+<span class="nc" id="L581">                                dataset, getPieIndex(), section, key, tip,</span>
+                                url);
+<span class="nc" id="L583">                        entities.add(entity);</span>
+                    }
+                }
+<span class="nc" id="L586">            }</span>
+<span class="nc bnc" id="L587" title="All 2 branches missed.">            else if (currentPass == 2) {</span>
+<span class="nc bnc" id="L588" title="All 2 branches missed.">                if (this.separatorsVisible) {</span>
+<span class="nc" id="L589">                    Line2D extendedSeparator = LineUtils.extendLine(</span>
+                            separator, this.innerSeparatorExtension,
+                            this.outerSeparatorExtension);
+<span class="nc" id="L592">                    g2.setStroke(this.separatorStroke);</span>
+<span class="nc" id="L593">                    g2.setPaint(this.separatorPaint);</span>
+<span class="nc" id="L594">                    g2.draw(extendedSeparator);</span>
+                }
+            }
+        }
+<span class="nc" id="L598">        state.setLatestAngle(angle2);</span>
+<span class="nc" id="L599">    }</span>
+
+    /**
+     * This method overrides the default value for cases where the ring plot
+     * is very thin.  This fixes bug 2121818.
+     *
+     * @return The label link depth, as a percentage of the plot's radius.
+     */
+    @Override
+    protected double getLabelLinkDepth() {
+<span class="nc" id="L609">        return Math.min(super.getLabelLinkDepth(), getSectionDepth() / 2);</span>
+    }
+
+    /**
+     * Tests this plot for equality with an arbitrary object.
+     *
+     * @param obj  the object to test against ({@code null} permitted).
+     *
+     * @return A boolean.
+     */
+    @Override
+    public boolean equals(Object obj) {
+<span class="pc bpc" id="L621" title="1 of 2 branches missed.">        if (this == obj) {</span>
+<span class="nc" id="L622">            return true;</span>
+        }
+<span class="fc bfc" id="L624" title="All 2 branches covered.">        if (!(obj instanceof RingPlot)) {</span>
+<span class="fc" id="L625">            return false;</span>
+        }
+<span class="fc" id="L627">        RingPlot that = (RingPlot) obj;</span>
+<span class="fc bfc" id="L628" title="All 2 branches covered.">        if (!this.centerTextMode.equals(that.centerTextMode)) {</span>
+<span class="fc" id="L629">            return false;</span>
+        }
+<span class="fc bfc" id="L631" title="All 2 branches covered.">        if (!Objects.equals(this.centerText, that.centerText)) {</span>
+<span class="fc" id="L632">            return false;</span>
+        }
+<span class="fc bfc" id="L634" title="All 2 branches covered.">        if (!this.centerTextFormatter.equals(that.centerTextFormatter)) {</span>
+<span class="fc" id="L635">            return false;</span>
+        }
+<span class="fc bfc" id="L637" title="All 2 branches covered.">        if (!this.centerTextFont.equals(that.centerTextFont)) {</span>
+<span class="fc" id="L638">            return false;</span>
+        }
+<span class="fc bfc" id="L640" title="All 2 branches covered.">        if (!this.centerTextColor.equals(that.centerTextColor)) {</span>
+<span class="fc" id="L641">            return false;</span>
+        }
+<span class="fc bfc" id="L643" title="All 2 branches covered.">        if (this.separatorsVisible != that.separatorsVisible) {</span>
+<span class="fc" id="L644">            return false;</span>
+        }
+<span class="fc bfc" id="L646" title="All 2 branches covered.">        if (!Objects.equals(this.separatorStroke,</span>
+                that.separatorStroke)) {
+<span class="fc" id="L648">            return false;</span>
+        }
+<span class="fc bfc" id="L650" title="All 2 branches covered.">        if (!PaintUtils.equal(this.separatorPaint, that.separatorPaint)) {</span>
+<span class="fc" id="L651">            return false;</span>
+        }
+<span class="fc bfc" id="L653" title="All 2 branches covered.">        if (this.innerSeparatorExtension != that.innerSeparatorExtension) {</span>
+<span class="fc" id="L654">            return false;</span>
+        }
+<span class="fc bfc" id="L656" title="All 2 branches covered.">        if (this.outerSeparatorExtension != that.outerSeparatorExtension) {</span>
+<span class="fc" id="L657">            return false;</span>
+        }
+<span class="fc bfc" id="L659" title="All 2 branches covered.">        if (this.sectionDepth != that.sectionDepth) {</span>
+<span class="fc" id="L660">            return false;</span>
+        }
+<span class="fc" id="L662">        return super.equals(obj);</span>
+    }
+
+    /**
+     * Provides serialization support.
+     *
+     * @param stream  the output stream.
+     *
+     * @throws IOException  if there is an I/O error.
+     */
+    private void writeObject(ObjectOutputStream stream) throws IOException {
+<span class="fc" id="L673">        stream.defaultWriteObject();</span>
+<span class="fc" id="L674">        SerialUtils.writeStroke(this.separatorStroke, stream);</span>
+<span class="fc" id="L675">        SerialUtils.writePaint(this.separatorPaint, stream);</span>
+<span class="fc" id="L676">    }</span>
+
+    /**
+     * Provides serialization support.
+     *
+     * @param stream  the input stream.
+     *
+     * @throws IOException  if there is an I/O error.
+     * @throws ClassNotFoundException  if there is a classpath problem.
+     */
+    private void readObject(ObjectInputStream stream)
+        throws IOException, ClassNotFoundException {
+<span class="fc" id="L688">        stream.defaultReadObject();</span>
+<span class="fc" id="L689">        this.separatorStroke = SerialUtils.readStroke(stream);</span>
+<span class="fc" id="L690">        this.separatorPaint = SerialUtils.readPaint(stream);</span>
+<span class="fc" id="L691">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

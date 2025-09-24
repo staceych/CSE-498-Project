@@ -1,0 +1,2174 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChartFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart</a> &gt; <span class="el_source">ChartFactory.java</span></div><h1>ChartFactory.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * -----------------
+ * ChartFactory.java
+ * -----------------
+ * (C) Copyright 2001-present, by David Gilbert and Contributors.
+ *
+ * Original Author:  David Gilbert;
+ * Contributor(s):   Serge V. Grachov;
+ *                   Joao Guilherme Del Valle;
+ *                   Bill Kelemen;
+ *                   Jon Iles;
+ *                   Jelai Wang;
+ *                   Richard Atkinson;
+ *                   David Browning (for Australian Institute of Marine Science);
+ *                   Benoit Xhenseval;
+ * 
+ */
+
+package org.jfree.chart;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.text.DateFormat;
+import java.text.NumberFormat;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.labels.BoxAndWhiskerToolTipGenerator;
+import org.jfree.chart.labels.HighLowItemLabelGenerator;
+import org.jfree.chart.labels.IntervalCategoryToolTipGenerator;
+import org.jfree.chart.labels.ItemLabelAnchor;
+import org.jfree.chart.labels.ItemLabelPosition;
+import org.jfree.chart.labels.PieToolTipGenerator;
+import org.jfree.chart.labels.StandardCategoryToolTipGenerator;
+import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
+import org.jfree.chart.labels.StandardPieToolTipGenerator;
+import org.jfree.chart.labels.StandardXYToolTipGenerator;
+import org.jfree.chart.labels.StandardXYZToolTipGenerator;
+import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.Marker;
+import org.jfree.chart.plot.MultiplePiePlot;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.plot.PiePlot3D;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.PolarPlot;
+import org.jfree.chart.plot.RingPlot;
+import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.plot.WaferMapPlot;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.DefaultPolarItemRenderer;
+import org.jfree.chart.renderer.WaferMapRenderer;
+import org.jfree.chart.renderer.category.AreaRenderer;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
+import org.jfree.chart.renderer.category.GanttRenderer;
+import org.jfree.chart.renderer.category.GradientBarPainter;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.chart.renderer.category.StackedAreaRenderer;
+import org.jfree.chart.renderer.category.StackedBarRenderer;
+import org.jfree.chart.renderer.category.StandardBarPainter;
+import org.jfree.chart.renderer.category.WaterfallBarRenderer;
+import org.jfree.chart.renderer.xy.CandlestickRenderer;
+import org.jfree.chart.renderer.xy.GradientXYBarPainter;
+import org.jfree.chart.renderer.xy.HighLowRenderer;
+import org.jfree.chart.renderer.xy.StackedXYAreaRenderer2;
+import org.jfree.chart.renderer.xy.StandardXYBarPainter;
+import org.jfree.chart.renderer.xy.WindItemRenderer;
+import org.jfree.chart.renderer.xy.XYAreaRenderer;
+import org.jfree.chart.renderer.xy.XYBarRenderer;
+import org.jfree.chart.renderer.xy.XYBoxAndWhiskerRenderer;
+import org.jfree.chart.renderer.xy.XYBubbleRenderer;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.renderer.xy.XYStepAreaRenderer;
+import org.jfree.chart.renderer.xy.XYStepRenderer;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.ui.Layer;
+import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.chart.ui.TextAnchor;
+import org.jfree.chart.urls.PieURLGenerator;
+import org.jfree.chart.urls.StandardCategoryURLGenerator;
+import org.jfree.chart.urls.StandardPieURLGenerator;
+import org.jfree.chart.urls.StandardXYURLGenerator;
+import org.jfree.chart.urls.StandardXYZURLGenerator;
+import org.jfree.chart.urls.XYURLGenerator;
+import org.jfree.chart.util.Args;
+import org.jfree.chart.util.TableOrder;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.IntervalCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.data.general.PieDataset;
+import org.jfree.data.general.WaferMapDataset;
+import org.jfree.data.statistics.BoxAndWhiskerCategoryDataset;
+import org.jfree.data.statistics.BoxAndWhiskerXYDataset;
+import org.jfree.data.xy.IntervalXYDataset;
+import org.jfree.data.xy.OHLCDataset;
+import org.jfree.data.xy.TableXYDataset;
+import org.jfree.data.xy.WindDataset;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYZDataset;
+
+/**
+ * A collection of utility methods for creating some standard charts with
+ * JFreeChart.
+ */
+public abstract class ChartFactory {
+
+    /** The chart theme. */
+<span class="fc" id="L142">    private static ChartTheme currentTheme = new StandardChartTheme(&quot;JFree&quot;);</span>
+
+    private ChartFactory() {
+        // no requirement to instantiate
+    }
+
+    /**
+     * Returns the current chart theme used by the factory.
+     *
+     * @return The chart theme.
+     *
+     * @see #setChartTheme(ChartTheme)
+     * @see ChartUtils#applyCurrentTheme(JFreeChart)
+     */
+    public static ChartTheme getChartTheme() {
+<span class="nc" id="L157">        return currentTheme;</span>
+    }
+
+    /**
+     * Sets the current chart theme.  This will be applied to all new charts
+     * created via methods in this class.
+     *
+     * @param theme  the theme ({@code null} not permitted).
+     *
+     * @see #getChartTheme()
+     * @see ChartUtils#applyCurrentTheme(JFreeChart)
+     */
+    public static void setChartTheme(ChartTheme theme) {
+<span class="nc" id="L170">        Args.nullNotPermitted(theme, &quot;theme&quot;);</span>
+<span class="nc" id="L171">        currentTheme = theme;</span>
+
+        // here we do a check to see if the user is installing the &quot;Legacy&quot;
+        // theme, and reset the bar painters in that case...
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (theme instanceof StandardChartTheme) {</span>
+<span class="nc" id="L176">            BarRenderer.setDefaultBarPainter(new StandardBarPainter());</span>
+<span class="nc" id="L177">            XYBarRenderer.setDefaultBarPainter(new StandardXYBarPainter());</span>
+        }
+<span class="nc" id="L179">    }</span>
+
+    /**
+     * Creates a pie chart with default settings.
+     * &lt;P&gt;
+     * The chart object returned by this method uses a {@link PiePlot} instance
+     * as the plot.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param locale  the locale ({@code null} not permitted).
+     *
+     * @return A pie chart.
+     */
+    public static JFreeChart createPieChart(String title, PieDataset dataset,
+            boolean legend, boolean tooltips, Locale locale) {
+
+<span class="nc" id="L198">        PiePlot plot = new PiePlot(dataset);</span>
+<span class="nc" id="L199">        plot.setLabelGenerator(new StandardPieSectionLabelGenerator(locale));</span>
+<span class="nc" id="L200">        plot.setInsets(new RectangleInsets(0.0, 5.0, 5.0, 5.0));</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (tooltips) {</span>
+<span class="nc" id="L202">            plot.setToolTipGenerator(new StandardPieToolTipGenerator(locale));</span>
+        }
+<span class="nc" id="L204">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L206">        currentTheme.apply(chart);</span>
+<span class="nc" id="L207">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a pie chart with default settings.
+     * &lt;P&gt;
+     * The chart object returned by this method uses a {@link PiePlot} instance
+     * as the plot.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A pie chart.
+     */
+    public static JFreeChart createPieChart(String title, PieDataset dataset) {
+<span class="fc" id="L223">        return createPieChart(title, dataset, true, true, false);</span>
+    }
+    
+    /**
+     * Creates a pie chart with default settings.
+     * &lt;P&gt;
+     * The chart object returned by this method uses a {@link PiePlot} instance
+     * as the plot.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A pie chart.
+     */
+    public static JFreeChart createPieChart(String title, PieDataset dataset,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L243">        PiePlot plot = new PiePlot(dataset);</span>
+<span class="fc" id="L244">        plot.setLabelGenerator(new StandardPieSectionLabelGenerator());</span>
+<span class="fc" id="L245">        plot.setInsets(new RectangleInsets(0.0, 5.0, 5.0, 5.0));</span>
+<span class="fc bfc" id="L246" title="All 2 branches covered.">        if (tooltips) {</span>
+<span class="fc" id="L247">            plot.setToolTipGenerator(new StandardPieToolTipGenerator());</span>
+        }
+<span class="fc bfc" id="L249" title="All 2 branches covered.">        if (urls) {</span>
+<span class="fc" id="L250">            plot.setURLGenerator(new StandardPieURLGenerator());</span>
+        }
+<span class="fc" id="L252">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L254">        currentTheme.apply(chart);</span>
+<span class="fc" id="L255">        return chart;</span>
+    }
+
+    /**
+     * Creates a pie chart with default settings that compares 2 datasets.
+     * The colour of each section will be determined by the move from the value
+     * for the same key in {@code previousDataset}. ie if value1 &amp;gt; 
+     * value2 then the section will be in green (unless 
+     * {@code greenForIncrease} is {@code false}, in which case it 
+     * would be {@code red}). Each section can have a shade of red or 
+     * green as the difference can be tailored between 0% (black) and 
+     * percentDiffForMaxScale% (bright red/green).
+     * &lt;p&gt;
+     * For instance if {@code percentDiffForMaxScale} is 10 (10%), a
+     * difference of 5% will have a half shade of red/green, a difference of
+     * 10% or more will have a maximum shade/brightness of red/green.
+     * &lt;P&gt;
+     * The chart object returned by this method uses a {@link PiePlot} instance
+     * as the plot.
+     * &lt;p&gt;
+     * Written by &lt;a href=&quot;mailto:opensource@objectlab.co.uk&quot;&gt;Benoit
+     * Xhenseval&lt;/a&gt;.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param previousDataset  the dataset for the last run, this will be used
+     *                         to compare each key in the dataset
+     * @param percentDiffForMaxScale scale goes from bright red/green to black,
+     *                               percentDiffForMaxScale indicate the change
+     *                               required to reach top scale.
+     * @param greenForIncrease  an increase since previousDataset will be
+     *                          displayed in green (decrease red) if true.
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param locale  the locale ({@code null} not permitted).
+     * @param subTitle displays a subtitle with colour scheme if true
+     * @param showDifference  create a new dataset that will show the %
+     *                        difference between the two datasets.
+     *
+     * @return A pie chart.
+     */
+    public static JFreeChart createPieChart(String title, PieDataset dataset,
+            PieDataset previousDataset, int percentDiffForMaxScale,
+            boolean greenForIncrease, boolean legend, boolean tooltips,
+            Locale locale, boolean subTitle, boolean showDifference) {
+
+<span class="nc" id="L301">        PiePlot plot = new PiePlot(dataset);</span>
+<span class="nc" id="L302">        plot.setLabelGenerator(new StandardPieSectionLabelGenerator(locale));</span>
+<span class="nc" id="L303">        plot.setInsets(new RectangleInsets(0.0, 5.0, 5.0, 5.0));</span>
+
+<span class="nc bnc" id="L305" title="All 2 branches missed.">        if (tooltips) {</span>
+<span class="nc" id="L306">            plot.setToolTipGenerator(new StandardPieToolTipGenerator(locale));</span>
+        }
+
+<span class="nc" id="L309">        List keys = dataset.getKeys();</span>
+<span class="nc" id="L310">        DefaultPieDataset series = null;</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">        if (showDifference) {</span>
+<span class="nc" id="L312">            series = new DefaultPieDataset();</span>
+        }
+
+<span class="nc" id="L315">        double colorPerPercent = 255.0 / percentDiffForMaxScale;</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">        for (Iterator it = keys.iterator(); it.hasNext();) {</span>
+<span class="nc" id="L317">            Comparable key = (Comparable) it.next();</span>
+<span class="nc" id="L318">            Number newValue = dataset.getValue(key);</span>
+<span class="nc" id="L319">            Number oldValue = previousDataset.getValue(key);</span>
+
+<span class="nc bnc" id="L321" title="All 2 branches missed.">            if (oldValue == null) {</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">                if (greenForIncrease) {</span>
+<span class="nc" id="L323">                    plot.setSectionPaint(key, Color.GREEN);</span>
+                }
+                else {
+<span class="nc" id="L326">                    plot.setSectionPaint(key, Color.RED);</span>
+                }
+<span class="nc bnc" id="L328" title="All 2 branches missed.">                if (showDifference) {</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">                    assert series != null; // suppresses compiler warning</span>
+<span class="nc" id="L330">                    series.setValue(key + &quot; (+100%)&quot;, newValue);</span>
+                }
+            }
+            else {
+<span class="nc" id="L334">                double percentChange = (newValue.doubleValue()</span>
+<span class="nc" id="L335">                        / oldValue.doubleValue() - 1.0) * 100.0;</span>
+                double shade
+<span class="nc bnc" id="L337" title="All 2 branches missed.">                    = (Math.abs(percentChange) &gt;= percentDiffForMaxScale ? 255</span>
+<span class="nc" id="L338">                    : Math.abs(percentChange) * colorPerPercent);</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">                if (greenForIncrease</span>
+<span class="nc bnc" id="L340" title="All 4 branches missed.">                        &amp;&amp; newValue.doubleValue() &gt; oldValue.doubleValue()</span>
+<span class="nc" id="L341">                        || !greenForIncrease &amp;&amp; newValue.doubleValue()</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">                        &lt; oldValue.doubleValue()) {</span>
+<span class="nc" id="L343">                    plot.setSectionPaint(key, new Color(0, (int) shade, 0));</span>
+                }
+                else {
+<span class="nc" id="L346">                    plot.setSectionPaint(key, new Color((int) shade, 0, 0));</span>
+                }
+<span class="nc bnc" id="L348" title="All 2 branches missed.">                if (showDifference) {</span>
+<span class="nc bnc" id="L349" title="All 2 branches missed.">                    assert series != null; // suppresses compiler warning</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">                    series.setValue(key + &quot; (&quot; + (percentChange &gt;= 0 ? &quot;+&quot; : &quot;&quot;)</span>
+<span class="nc" id="L351">                            + NumberFormat.getPercentInstance().format(</span>
+                            percentChange / 100.0) + &quot;)&quot;, newValue);
+                }
+            }
+<span class="nc" id="L355">        }</span>
+
+<span class="nc bnc" id="L357" title="All 2 branches missed.">        if (showDifference) {</span>
+<span class="nc" id="L358">            plot.setDataset(series);</span>
+        }
+
+<span class="nc" id="L361">        JFreeChart chart =  new JFreeChart(title,</span>
+                JFreeChart.DEFAULT_TITLE_FONT, plot, legend);
+
+<span class="nc bnc" id="L364" title="All 2 branches missed.">        if (subTitle) {</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">            TextTitle subtitle = new TextTitle(&quot;Bright &quot; + (greenForIncrease </span>
+<span class="nc" id="L366">                    ? &quot;red&quot; : &quot;green&quot;) + &quot;=change &gt;=-&quot; + percentDiffForMaxScale</span>
+<span class="nc bnc" id="L367" title="All 2 branches missed.">                    + &quot;%, Bright &quot; + (!greenForIncrease ? &quot;red&quot; : &quot;green&quot;)</span>
+                    + &quot;=change &gt;=+&quot; + percentDiffForMaxScale + &quot;%&quot;,
+                    new Font(&quot;SansSerif&quot;, Font.PLAIN, 10));
+<span class="nc" id="L370">            chart.addSubtitle(subtitle);</span>
+        }
+<span class="nc" id="L372">        currentTheme.apply(chart);</span>
+<span class="nc" id="L373">        return chart;</span>
+    }
+
+    /**
+     * Creates a pie chart with default settings that compares 2 datasets.
+     * The colour of each section will be determined by the move from the value
+     * for the same key in {@code previousDataset}. ie if value1 &amp;gt; 
+     * value2 then the section will be in green (unless 
+     * {@code greenForIncrease} is {@code false}, in which case it 
+     * would be {@code red}). Each section can have a shade of red or 
+     * green as the difference can be tailored between 0% (black) and 
+     * percentDiffForMaxScale% (bright red/green).
+     * &lt;p&gt;
+     * For instance if {@code percentDiffForMaxScale} is 10 (10%), a
+     * difference of 5% will have a half shade of red/green, a difference of
+     * 10% or more will have a maximum shade/brightness of red/green.
+     * &lt;P&gt;
+     * The chart object returned by this method uses a {@link PiePlot} instance
+     * as the plot.
+     * &lt;p&gt;
+     * Written by &lt;a href=&quot;mailto:opensource@objectlab.co.uk&quot;&gt;Benoit
+     * Xhenseval&lt;/a&gt;.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param previousDataset  the dataset for the last run, this will be used
+     *                         to compare each key in the dataset
+     * @param percentDiffForMaxScale scale goes from bright red/green to black,
+     *                               percentDiffForMaxScale indicate the change
+     *                               required to reach top scale.
+     * @param greenForIncrease  an increase since previousDataset will be
+     *                          displayed in green (decrease red) if true.
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     * @param subTitle displays a subtitle with colour scheme if true
+     * @param showDifference  create a new dataset that will show the %
+     *                        difference between the two datasets.
+     *
+     * @return A pie chart.
+     */
+    public static JFreeChart createPieChart(String title, PieDataset dataset,
+            PieDataset previousDataset, int percentDiffForMaxScale,
+            boolean greenForIncrease, boolean legend, boolean tooltips, 
+            boolean urls, boolean subTitle, boolean showDifference) {
+
+<span class="nc" id="L419">        PiePlot plot = new PiePlot(dataset);</span>
+<span class="nc" id="L420">        plot.setLabelGenerator(new StandardPieSectionLabelGenerator());</span>
+<span class="nc" id="L421">        plot.setInsets(new RectangleInsets(0.0, 5.0, 5.0, 5.0));</span>
+
+<span class="nc bnc" id="L423" title="All 2 branches missed.">        if (tooltips) {</span>
+<span class="nc" id="L424">            plot.setToolTipGenerator(new StandardPieToolTipGenerator());</span>
+        }
+<span class="nc bnc" id="L426" title="All 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L427">            plot.setURLGenerator(new StandardPieURLGenerator());</span>
+        }
+
+<span class="nc" id="L430">        List keys = dataset.getKeys();</span>
+<span class="nc" id="L431">        DefaultPieDataset series = null;</span>
+<span class="nc bnc" id="L432" title="All 2 branches missed.">        if (showDifference) {</span>
+<span class="nc" id="L433">            series = new DefaultPieDataset();</span>
+        }
+
+<span class="nc" id="L436">        double colorPerPercent = 255.0 / percentDiffForMaxScale;</span>
+<span class="nc bnc" id="L437" title="All 2 branches missed.">        for (Iterator it = keys.iterator(); it.hasNext();) {</span>
+<span class="nc" id="L438">            Comparable key = (Comparable) it.next();</span>
+<span class="nc" id="L439">            Number newValue = dataset.getValue(key);</span>
+<span class="nc" id="L440">            Number oldValue = previousDataset.getValue(key);</span>
+
+<span class="nc bnc" id="L442" title="All 2 branches missed.">            if (oldValue == null) {</span>
+<span class="nc bnc" id="L443" title="All 2 branches missed.">                if (greenForIncrease) {</span>
+<span class="nc" id="L444">                    plot.setSectionPaint(key, Color.GREEN);</span>
+                }
+                else {
+<span class="nc" id="L447">                    plot.setSectionPaint(key, Color.RED);</span>
+                }
+<span class="nc bnc" id="L449" title="All 2 branches missed.">                if (showDifference) {</span>
+<span class="nc bnc" id="L450" title="All 2 branches missed.">                    assert series != null; // suppresses compiler warning</span>
+<span class="nc" id="L451">                    series.setValue(key + &quot; (+100%)&quot;, newValue);</span>
+                }
+            }
+            else {
+<span class="nc" id="L455">                double percentChange = (newValue.doubleValue()</span>
+<span class="nc" id="L456">                        / oldValue.doubleValue() - 1.0) * 100.0;</span>
+                double shade
+<span class="nc bnc" id="L458" title="All 2 branches missed.">                    = (Math.abs(percentChange) &gt;= percentDiffForMaxScale ? 255</span>
+<span class="nc" id="L459">                    : Math.abs(percentChange) * colorPerPercent);</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">                if (greenForIncrease</span>
+<span class="nc bnc" id="L461" title="All 4 branches missed.">                        &amp;&amp; newValue.doubleValue() &gt; oldValue.doubleValue()</span>
+<span class="nc" id="L462">                        || !greenForIncrease &amp;&amp; newValue.doubleValue()</span>
+<span class="nc bnc" id="L463" title="All 2 branches missed.">                        &lt; oldValue.doubleValue()) {</span>
+<span class="nc" id="L464">                    plot.setSectionPaint(key, new Color(0, (int) shade, 0));</span>
+                }
+                else {
+<span class="nc" id="L467">                    plot.setSectionPaint(key, new Color((int) shade, 0, 0));</span>
+                }
+<span class="nc bnc" id="L469" title="All 2 branches missed.">                if (showDifference) {</span>
+<span class="nc bnc" id="L470" title="All 2 branches missed.">                    assert series != null; // suppresses compiler warning</span>
+<span class="nc bnc" id="L471" title="All 2 branches missed.">                    series.setValue(key + &quot; (&quot; + (percentChange &gt;= 0 ? &quot;+&quot; : &quot;&quot;)</span>
+<span class="nc" id="L472">                            + NumberFormat.getPercentInstance().format(</span>
+                            percentChange / 100.0) + &quot;)&quot;, newValue);
+                }
+            }
+<span class="nc" id="L476">        }</span>
+
+<span class="nc bnc" id="L478" title="All 2 branches missed.">        if (showDifference) {</span>
+<span class="nc" id="L479">            plot.setDataset(series);</span>
+        }
+
+<span class="nc" id="L482">        JFreeChart chart =  new JFreeChart(title,</span>
+                JFreeChart.DEFAULT_TITLE_FONT, plot, legend);
+
+<span class="nc bnc" id="L485" title="All 2 branches missed.">        if (subTitle) {</span>
+<span class="nc bnc" id="L486" title="All 2 branches missed.">            TextTitle subtitle = new TextTitle(&quot;Bright &quot; + (greenForIncrease </span>
+<span class="nc" id="L487">                    ? &quot;red&quot; : &quot;green&quot;) + &quot;=change &gt;=-&quot; + percentDiffForMaxScale</span>
+<span class="nc bnc" id="L488" title="All 2 branches missed.">                    + &quot;%, Bright &quot; + (!greenForIncrease ? &quot;red&quot; : &quot;green&quot;)</span>
+                    + &quot;=change &gt;=+&quot; + percentDiffForMaxScale + &quot;%&quot;,
+                    new Font(&quot;SansSerif&quot;, Font.PLAIN, 10));
+<span class="nc" id="L491">            chart.addSubtitle(subtitle);</span>
+        }
+<span class="nc" id="L493">        currentTheme.apply(chart);</span>
+<span class="nc" id="L494">        return chart;</span>
+    }
+
+    /**
+     * Creates a ring chart with default settings.
+     * &lt;P&gt;
+     * The chart object returned by this method uses a {@link RingPlot}
+     * instance as the plot.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param locale  the locale ({@code null} not permitted).
+     *
+     * @return A ring chart.
+     */
+    public static JFreeChart createRingChart(String title, PieDataset dataset,
+            boolean legend, boolean tooltips, Locale locale) {
+
+<span class="nc" id="L514">        RingPlot plot = new RingPlot(dataset);</span>
+<span class="nc" id="L515">        plot.setLabelGenerator(new StandardPieSectionLabelGenerator(locale));</span>
+<span class="nc" id="L516">        plot.setInsets(new RectangleInsets(0.0, 5.0, 5.0, 5.0));</span>
+<span class="nc bnc" id="L517" title="All 2 branches missed.">        if (tooltips) {</span>
+<span class="nc" id="L518">            plot.setToolTipGenerator(new StandardPieToolTipGenerator(locale));</span>
+        }
+<span class="nc" id="L520">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L522">        currentTheme.apply(chart);</span>
+<span class="nc" id="L523">        return chart;</span>
+    }
+
+    /**
+     * Creates a ring chart with default settings.
+     * &lt;P&gt;
+     * The chart object returned by this method uses a {@link RingPlot}
+     * instance as the plot.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A ring chart.
+     */
+    public static JFreeChart createRingChart(String title, PieDataset dataset,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="nc" id="L543">        RingPlot plot = new RingPlot(dataset);</span>
+<span class="nc" id="L544">        plot.setLabelGenerator(new StandardPieSectionLabelGenerator());</span>
+<span class="nc" id="L545">        plot.setInsets(new RectangleInsets(0.0, 5.0, 5.0, 5.0));</span>
+<span class="nc bnc" id="L546" title="All 2 branches missed.">        if (tooltips) {</span>
+<span class="nc" id="L547">            plot.setToolTipGenerator(new StandardPieToolTipGenerator());</span>
+        }
+<span class="nc bnc" id="L549" title="All 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L550">            plot.setURLGenerator(new StandardPieURLGenerator());</span>
+        }
+<span class="nc" id="L552">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L554">        currentTheme.apply(chart);</span>
+<span class="nc" id="L555">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a chart that displays multiple pie plots.  The chart object
+     * returned by this method uses a {@link MultiplePiePlot} instance as the
+     * plot.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset ({@code null} permitted).
+     * @param order  the order that the data is extracted (by row or by column)
+     *               ({@code null} not permitted).
+     * @param legend  include a legend?
+     * @param tooltips  generate tooltips?
+     * @param urls  generate URLs?
+     *
+     * @return A chart.
+     */
+    public static JFreeChart createMultiplePieChart(String title,
+            CategoryDataset dataset, TableOrder order, boolean legend,
+            boolean tooltips, boolean urls) {
+
+<span class="nc" id="L578">        Args.nullNotPermitted(order, &quot;order&quot;);</span>
+<span class="nc" id="L579">        MultiplePiePlot plot = new MultiplePiePlot(dataset);</span>
+<span class="nc" id="L580">        plot.setDataExtractOrder(order);</span>
+<span class="nc" id="L581">        plot.setBackgroundPaint(null);</span>
+<span class="nc" id="L582">        plot.setOutlineStroke(null);</span>
+
+<span class="nc bnc" id="L584" title="All 2 branches missed.">        if (tooltips) {</span>
+<span class="nc" id="L585">            PieToolTipGenerator tooltipGenerator</span>
+                = new StandardPieToolTipGenerator();
+<span class="nc" id="L587">            PiePlot pp = (PiePlot) plot.getPieChart().getPlot();</span>
+<span class="nc" id="L588">            pp.setToolTipGenerator(tooltipGenerator);</span>
+        }
+
+<span class="nc bnc" id="L591" title="All 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L592">            PieURLGenerator urlGenerator = new StandardPieURLGenerator();</span>
+<span class="nc" id="L593">            PiePlot pp = (PiePlot) plot.getPieChart().getPlot();</span>
+<span class="nc" id="L594">            pp.setURLGenerator(urlGenerator);</span>
+        }
+
+<span class="nc" id="L597">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L599">        currentTheme.apply(chart);</span>
+<span class="nc" id="L600">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a 3D pie chart using the specified dataset.  The chart object
+     * returned by this method uses a {@link PiePlot3D} instance as the
+     * plot.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param locale  the locale ({@code null} not permitted).
+     *
+     * @return A pie chart.
+     * 
+     * @deprecated For 3D pie charts, use Orson Charts (https://github.com/jfree/orson-charts).  
+     */
+    public static JFreeChart createPieChart3D(String title, PieDataset dataset,
+            boolean legend, boolean tooltips, Locale locale) {
+
+<span class="nc" id="L622">        Args.nullNotPermitted(locale, &quot;locale&quot;);</span>
+<span class="nc" id="L623">        PiePlot3D plot = new PiePlot3D(dataset);</span>
+<span class="nc" id="L624">        plot.setInsets(new RectangleInsets(0.0, 5.0, 5.0, 5.0));</span>
+<span class="nc bnc" id="L625" title="All 2 branches missed.">        if (tooltips) {</span>
+<span class="nc" id="L626">            plot.setToolTipGenerator(new StandardPieToolTipGenerator(locale));</span>
+        }
+<span class="nc" id="L628">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L630">        currentTheme.apply(chart);</span>
+<span class="nc" id="L631">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a 3D pie chart using the specified dataset.  The chart object
+     * returned by this method uses a {@link PiePlot3D} instance as the
+     * plot.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A pie chart.
+     * 
+     * @deprecated For 3D pie charts, use Orson Charts (https://github.com/jfree/orson-charts).  
+     */
+    public static JFreeChart createPieChart3D(String title,
+            PieDataset dataset) {
+<span class="fc" id="L649">        return createPieChart3D(title, dataset, true, true, false);</span>
+    }
+    
+    /**
+     * Creates a 3D pie chart using the specified dataset.  The chart object
+     * returned by this method uses a {@link PiePlot3D} instance as the
+     * plot.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A pie chart.
+     * @deprecated For 3D pie charts, use Orson Charts (https://github.com/jfree/orson-charts).  
+     */
+    public static JFreeChart createPieChart3D(String title, PieDataset dataset,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L669">        PiePlot3D plot = new PiePlot3D(dataset);</span>
+<span class="fc" id="L670">        plot.setInsets(new RectangleInsets(0.0, 5.0, 5.0, 5.0));</span>
+<span class="fc bfc" id="L671" title="All 2 branches covered.">        if (tooltips) {</span>
+<span class="fc" id="L672">            plot.setToolTipGenerator(new StandardPieToolTipGenerator());</span>
+        }
+<span class="pc bpc" id="L674" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L675">            plot.setURLGenerator(new StandardPieURLGenerator());</span>
+        }
+<span class="fc" id="L677">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L679">        currentTheme.apply(chart);</span>
+<span class="fc" id="L680">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a chart that displays multiple pie plots.  The chart object
+     * returned by this method uses a {@link MultiplePiePlot} instance as the
+     * plot.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset ({@code null} permitted).
+     * @param order  the order that the data is extracted (by row or by column)
+     *               ({@code null} not permitted).
+     * @param legend  include a legend?
+     * @param tooltips  generate tooltips?
+     * @param urls  generate URLs?
+     *
+     * @return A chart.
+     */
+    public static JFreeChart createMultiplePieChart3D(String title,
+            CategoryDataset dataset, TableOrder order, boolean legend,
+            boolean tooltips, boolean urls) {
+
+<span class="nc" id="L703">        Args.nullNotPermitted(order, &quot;order&quot;);</span>
+<span class="nc" id="L704">        MultiplePiePlot plot = new MultiplePiePlot(dataset);</span>
+<span class="nc" id="L705">        plot.setDataExtractOrder(order);</span>
+<span class="nc" id="L706">        plot.setBackgroundPaint(null);</span>
+<span class="nc" id="L707">        plot.setOutlineStroke(null);</span>
+
+<span class="nc" id="L709">        JFreeChart pieChart = new JFreeChart(new PiePlot3D(null));</span>
+<span class="nc" id="L710">        TextTitle seriesTitle = new TextTitle(&quot;Series Title&quot;,</span>
+                new Font(&quot;SansSerif&quot;, Font.BOLD, 12));
+<span class="nc" id="L712">        seriesTitle.setPosition(RectangleEdge.BOTTOM);</span>
+<span class="nc" id="L713">        pieChart.setTitle(seriesTitle);</span>
+<span class="nc" id="L714">        pieChart.removeLegend();</span>
+<span class="nc" id="L715">        pieChart.setBackgroundPaint(null);</span>
+<span class="nc" id="L716">        plot.setPieChart(pieChart);</span>
+
+<span class="nc bnc" id="L718" title="All 2 branches missed.">        if (tooltips) {</span>
+<span class="nc" id="L719">            PieToolTipGenerator tooltipGenerator</span>
+                = new StandardPieToolTipGenerator();
+<span class="nc" id="L721">            PiePlot pp = (PiePlot) plot.getPieChart().getPlot();</span>
+<span class="nc" id="L722">            pp.setToolTipGenerator(tooltipGenerator);</span>
+        }
+
+<span class="nc bnc" id="L725" title="All 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L726">            PieURLGenerator urlGenerator = new StandardPieURLGenerator();</span>
+<span class="nc" id="L727">            PiePlot pp = (PiePlot) plot.getPieChart().getPlot();</span>
+<span class="nc" id="L728">            pp.setURLGenerator(urlGenerator);</span>
+        }
+
+<span class="nc" id="L731">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L733">        currentTheme.apply(chart);</span>
+<span class="nc" id="L734">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a bar chart with a vertical orientation.  The chart object
+     * returned by this method uses a {@link CategoryPlot} instance as the
+     * plot, with a {@link CategoryAxis} for the domain axis, a
+     * {@link NumberAxis} as the range axis, and a {@link BarRenderer} as the
+     * renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param categoryAxisLabel  the label for the category axis
+     *                           ({@code null} permitted).
+     * @param valueAxisLabel  the label for the value axis
+     *                        ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A bar chart.
+     */
+    public static JFreeChart createBarChart(String title,
+            String categoryAxisLabel, String valueAxisLabel,
+            CategoryDataset dataset) {
+<span class="fc" id="L757">        return createBarChart(title, categoryAxisLabel, valueAxisLabel, dataset,</span>
+                PlotOrientation.VERTICAL, true, true, false);
+    }
+ 
+    /**
+     * Creates a bar chart.  The chart object returned by this method uses a
+     * {@link CategoryPlot} instance as the plot, with a {@link CategoryAxis}
+     * for the domain axis, a {@link NumberAxis} as the range axis, and a
+     * {@link BarRenderer} as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param categoryAxisLabel  the label for the category axis
+     *                           ({@code null} permitted).
+     * @param valueAxisLabel  the label for the value axis
+     *                        ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the plot orientation (horizontal or vertical)
+     *                     ({@code null} not permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A bar chart.
+     */
+    public static JFreeChart createBarChart(String title,
+            String categoryAxisLabel, String valueAxisLabel,
+            CategoryDataset dataset, PlotOrientation orientation,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L786">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="fc" id="L787">        CategoryAxis categoryAxis = new CategoryAxis(categoryAxisLabel);</span>
+<span class="fc" id="L788">        ValueAxis valueAxis = new NumberAxis(valueAxisLabel);</span>
+
+<span class="fc" id="L790">        BarRenderer renderer = new BarRenderer();</span>
+<span class="fc bfc" id="L791" title="All 2 branches covered.">        if (orientation == PlotOrientation.HORIZONTAL) {</span>
+<span class="fc" id="L792">            ItemLabelPosition position1 = new ItemLabelPosition(</span>
+                    ItemLabelAnchor.OUTSIDE3, TextAnchor.CENTER_LEFT);
+<span class="fc" id="L794">            renderer.setDefaultPositiveItemLabelPosition(position1);</span>
+<span class="fc" id="L795">            ItemLabelPosition position2 = new ItemLabelPosition(</span>
+                    ItemLabelAnchor.OUTSIDE9, TextAnchor.CENTER_RIGHT);
+<span class="fc" id="L797">            renderer.setDefaultNegativeItemLabelPosition(position2);</span>
+<span class="pc bpc" id="L798" title="1 of 2 branches missed.">        } else if (orientation == PlotOrientation.VERTICAL) {</span>
+<span class="fc" id="L799">            ItemLabelPosition position1 = new ItemLabelPosition(</span>
+                    ItemLabelAnchor.OUTSIDE12, TextAnchor.BOTTOM_CENTER);
+<span class="fc" id="L801">            renderer.setDefaultPositiveItemLabelPosition(position1);</span>
+<span class="fc" id="L802">            ItemLabelPosition position2 = new ItemLabelPosition(</span>
+                    ItemLabelAnchor.OUTSIDE6, TextAnchor.TOP_CENTER);
+<span class="fc" id="L804">            renderer.setDefaultNegativeItemLabelPosition(position2);</span>
+        }
+<span class="fc bfc" id="L806" title="All 2 branches covered.">        if (tooltips) {</span>
+<span class="fc" id="L807">            renderer.setDefaultToolTipGenerator(</span>
+                    new StandardCategoryToolTipGenerator());
+        }
+<span class="fc bfc" id="L810" title="All 2 branches covered.">        if (urls) {</span>
+<span class="fc" id="L811">            renderer.setDefaultItemURLGenerator(</span>
+                    new StandardCategoryURLGenerator());
+        }
+
+<span class="fc" id="L815">        CategoryPlot plot = new CategoryPlot(dataset, categoryAxis, valueAxis,</span>
+                renderer);
+<span class="fc" id="L817">        plot.setOrientation(orientation);</span>
+<span class="fc" id="L818">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L820">        currentTheme.apply(chart);</span>
+<span class="fc" id="L821">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a stacked bar chart with default settings.  The chart object
+     * returned by this method uses a {@link CategoryPlot} instance as the
+     * plot, with a {@link CategoryAxis} for the domain axis, a
+     * {@link NumberAxis} as the range axis, and a {@link StackedBarRenderer}
+     * as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param domainAxisLabel  the label for the category axis
+     *                         ({@code null} permitted).
+     * @param rangeAxisLabel  the label for the value axis
+     *                        ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A stacked bar chart.
+     */
+    public static JFreeChart createStackedBarChart(String title,
+            String domainAxisLabel, String rangeAxisLabel,
+            CategoryDataset dataset) {
+<span class="nc" id="L844">        return createStackedBarChart(title, domainAxisLabel, rangeAxisLabel,</span>
+                dataset, PlotOrientation.VERTICAL, true, true, false);
+    }
+    
+    /**
+     * Creates a stacked bar chart with default settings.  The chart object
+     * returned by this method uses a {@link CategoryPlot} instance as the
+     * plot, with a {@link CategoryAxis} for the domain axis, a
+     * {@link NumberAxis} as the range axis, and a {@link StackedBarRenderer}
+     * as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param domainAxisLabel  the label for the category axis
+     *                         ({@code null} permitted).
+     * @param rangeAxisLabel  the label for the value axis
+     *                        ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the orientation of the chart (horizontal or
+     *                     vertical) ({@code null} not permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A stacked bar chart.
+     */
+    public static JFreeChart createStackedBarChart(String title,
+            String domainAxisLabel, String rangeAxisLabel,
+            CategoryDataset dataset, PlotOrientation orientation,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L874">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+
+<span class="fc" id="L876">        CategoryAxis categoryAxis = new CategoryAxis(domainAxisLabel);</span>
+<span class="fc" id="L877">        ValueAxis valueAxis = new NumberAxis(rangeAxisLabel);</span>
+
+<span class="fc" id="L879">        StackedBarRenderer renderer = new StackedBarRenderer();</span>
+<span class="fc bfc" id="L880" title="All 2 branches covered.">        if (tooltips) {</span>
+<span class="fc" id="L881">            renderer.setDefaultToolTipGenerator(</span>
+                    new StandardCategoryToolTipGenerator());
+        }
+<span class="fc bfc" id="L884" title="All 2 branches covered.">        if (urls) {</span>
+<span class="fc" id="L885">            renderer.setDefaultItemURLGenerator(</span>
+                    new StandardCategoryURLGenerator());
+        }
+
+<span class="fc" id="L889">        CategoryPlot plot = new CategoryPlot(dataset, categoryAxis, valueAxis,</span>
+                renderer);
+<span class="fc" id="L891">        plot.setOrientation(orientation);</span>
+<span class="fc" id="L892">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L894">        currentTheme.apply(chart);</span>
+<span class="fc" id="L895">        return chart;</span>
+
+    }
+
+    /**
+     * Creates an area chart with default settings.  The chart object returned
+     * by this method uses a {@link CategoryPlot} instance as the plot, with a
+     * {@link CategoryAxis} for the domain axis, a {@link NumberAxis} as the
+     * range axis, and an {@link AreaRenderer} as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param categoryAxisLabel  the label for the category axis
+     *                           ({@code null} permitted).
+     * @param valueAxisLabel  the label for the value axis ({@code null}
+     *                        permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return An area chart.
+     */
+    public static JFreeChart createAreaChart(String title,
+            String categoryAxisLabel, String valueAxisLabel,
+            CategoryDataset dataset) {
+<span class="nc" id="L917">        return createAreaChart(title, categoryAxisLabel, valueAxisLabel,</span>
+                dataset, PlotOrientation.VERTICAL, true, true, false);
+    }
+            
+    /**
+     * Creates an area chart with default settings.  The chart object returned
+     * by this method uses a {@link CategoryPlot} instance as the plot, with a
+     * {@link CategoryAxis} for the domain axis, a {@link NumberAxis} as the
+     * range axis, and an {@link AreaRenderer} as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param categoryAxisLabel  the label for the category axis
+     *                           ({@code null} permitted).
+     * @param valueAxisLabel  the label for the value axis ({@code null}
+     *                        permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the plot orientation ({@code null} not
+     *                     permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return An area chart.
+     */
+    public static JFreeChart createAreaChart(String title,
+            String categoryAxisLabel, String valueAxisLabel,
+            CategoryDataset dataset, PlotOrientation orientation,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L946">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="fc" id="L947">        CategoryAxis categoryAxis = new CategoryAxis(categoryAxisLabel);</span>
+<span class="fc" id="L948">        categoryAxis.setCategoryMargin(0.0);</span>
+
+<span class="fc" id="L950">        ValueAxis valueAxis = new NumberAxis(valueAxisLabel);</span>
+
+<span class="fc" id="L952">        AreaRenderer renderer = new AreaRenderer();</span>
+<span class="pc bpc" id="L953" title="1 of 2 branches missed.">        if (tooltips) {</span>
+<span class="fc" id="L954">            renderer.setDefaultToolTipGenerator(</span>
+                    new StandardCategoryToolTipGenerator());
+        }
+<span class="pc bpc" id="L957" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="fc" id="L958">            renderer.setDefaultItemURLGenerator(</span>
+                    new StandardCategoryURLGenerator());
+        }
+
+<span class="fc" id="L962">        CategoryPlot plot = new CategoryPlot(dataset, categoryAxis, valueAxis,</span>
+                renderer);
+<span class="fc" id="L964">        plot.setOrientation(orientation);</span>
+<span class="fc" id="L965">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L967">        currentTheme.apply(chart);</span>
+<span class="fc" id="L968">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a stacked area chart with default settings.  The chart object
+     * returned by this method uses a {@link CategoryPlot} instance as the
+     * plot, with a {@link CategoryAxis} for the domain axis, a
+     * {@link NumberAxis} as the range axis, and a {@link StackedAreaRenderer}
+     * as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param categoryAxisLabel  the label for the category axis
+     *                           ({@code null} permitted).
+     * @param valueAxisLabel  the label for the value axis ({@code null}
+     *                        permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A stacked area chart.
+     */
+    public static JFreeChart createStackedAreaChart(String title,
+            String categoryAxisLabel, String valueAxisLabel,
+            CategoryDataset dataset) {
+<span class="nc" id="L991">        return createStackedAreaChart(title, categoryAxisLabel, valueAxisLabel,</span>
+                dataset, PlotOrientation.VERTICAL, true, true, false);
+    }
+    
+    /**
+     * Creates a stacked area chart with default settings.  The chart object
+     * returned by this method uses a {@link CategoryPlot} instance as the
+     * plot, with a {@link CategoryAxis} for the domain axis, a
+     * {@link NumberAxis} as the range axis, and a {@link StackedAreaRenderer}
+     * as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param categoryAxisLabel  the label for the category axis
+     *                           ({@code null} permitted).
+     * @param valueAxisLabel  the label for the value axis ({@code null}
+     *                        permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the plot orientation (horizontal or vertical)
+     *                     ({@code null} not permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A stacked area chart.
+     */
+    public static JFreeChart createStackedAreaChart(String title,
+            String categoryAxisLabel, String valueAxisLabel,
+            CategoryDataset dataset, PlotOrientation orientation,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L1021">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="fc" id="L1022">        CategoryAxis categoryAxis = new CategoryAxis(categoryAxisLabel);</span>
+<span class="fc" id="L1023">        categoryAxis.setCategoryMargin(0.0);</span>
+<span class="fc" id="L1024">        ValueAxis valueAxis = new NumberAxis(valueAxisLabel);</span>
+
+<span class="fc" id="L1026">        StackedAreaRenderer renderer = new StackedAreaRenderer();</span>
+<span class="pc bpc" id="L1027" title="1 of 2 branches missed.">        if (tooltips) {</span>
+<span class="fc" id="L1028">            renderer.setDefaultToolTipGenerator(</span>
+                    new StandardCategoryToolTipGenerator());
+        }
+<span class="pc bpc" id="L1031" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="fc" id="L1032">            renderer.setDefaultItemURLGenerator(</span>
+                    new StandardCategoryURLGenerator());
+        }
+
+<span class="fc" id="L1036">        CategoryPlot plot = new CategoryPlot(dataset, categoryAxis, valueAxis,</span>
+                renderer);
+<span class="fc" id="L1038">        plot.setOrientation(orientation);</span>
+<span class="fc" id="L1039">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L1041">        currentTheme.apply(chart);</span>
+<span class="fc" id="L1042">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a line chart with default settings.  The chart object returned
+     * by this method uses a {@link CategoryPlot} instance as the plot, with a
+     * {@link CategoryAxis} for the domain axis, a {@link NumberAxis} as the
+     * range axis, and a {@link LineAndShapeRenderer} as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param categoryAxisLabel  the label for the category axis
+     *                           ({@code null} permitted).
+     * @param valueAxisLabel  the label for the value axis ({@code null}
+     *                        permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A line chart.
+     */
+    public static JFreeChart createLineChart(String title,
+            String categoryAxisLabel, String valueAxisLabel,
+            CategoryDataset dataset) {
+<span class="fc" id="L1064">        return createLineChart(title, categoryAxisLabel, valueAxisLabel,</span>
+                dataset, PlotOrientation.VERTICAL, true, true, false);
+    }
+    
+    /**
+     * Creates a line chart with default settings.  The chart object returned
+     * by this method uses a {@link CategoryPlot} instance as the plot, with a
+     * {@link CategoryAxis} for the domain axis, a {@link NumberAxis} as the
+     * range axis, and a {@link LineAndShapeRenderer} as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param categoryAxisLabel  the label for the category axis
+     *                           ({@code null} permitted).
+     * @param valueAxisLabel  the label for the value axis ({@code null}
+     *                        permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the chart orientation (horizontal or vertical)
+     *                     ({@code null} not permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A line chart.
+     */
+    public static JFreeChart createLineChart(String title,
+            String categoryAxisLabel, String valueAxisLabel,
+            CategoryDataset dataset, PlotOrientation orientation,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L1093">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="fc" id="L1094">        CategoryAxis categoryAxis = new CategoryAxis(categoryAxisLabel);</span>
+<span class="fc" id="L1095">        ValueAxis valueAxis = new NumberAxis(valueAxisLabel);</span>
+
+<span class="fc" id="L1097">        LineAndShapeRenderer renderer = new LineAndShapeRenderer(true, false);</span>
+<span class="fc bfc" id="L1098" title="All 2 branches covered.">        if (tooltips) {</span>
+<span class="fc" id="L1099">            renderer.setDefaultToolTipGenerator(</span>
+                    new StandardCategoryToolTipGenerator());
+        }
+<span class="pc bpc" id="L1102" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L1103">            renderer.setDefaultItemURLGenerator(</span>
+                    new StandardCategoryURLGenerator());
+        }
+<span class="fc" id="L1106">        CategoryPlot plot = new CategoryPlot(dataset, categoryAxis, valueAxis,</span>
+                renderer);
+<span class="fc" id="L1108">        plot.setOrientation(orientation);</span>
+<span class="fc" id="L1109">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L1111">        currentTheme.apply(chart);</span>
+<span class="fc" id="L1112">        return chart;</span>
+
+    }  
+        
+    /**
+     * Creates a Gantt chart using the supplied attributes plus default values
+     * where required.  The chart object returned by this method uses a
+     * {@link CategoryPlot} instance as the plot, with a {@link CategoryAxis}
+     * for the domain axis, a {@link DateAxis} as the range axis, and a
+     * {@link GanttRenderer} as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param categoryAxisLabel  the label for the category axis
+     *                           ({@code null} permitted).
+     * @param dateAxisLabel  the label for the date axis
+     *                       ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A Gantt chart.
+     */
+    public static JFreeChart createGanttChart(String title,
+            String categoryAxisLabel, String dateAxisLabel,
+            IntervalCategoryDataset dataset) {
+<span class="nc" id="L1135">        return createGanttChart(title, categoryAxisLabel, dateAxisLabel,</span>
+                dataset, true, true, false);
+    }
+    
+    /**
+     * Creates a Gantt chart using the supplied attributes plus default values
+     * where required.  The chart object returned by this method uses a
+     * {@link CategoryPlot} instance as the plot, with a {@link CategoryAxis}
+     * for the domain axis, a {@link DateAxis} as the range axis, and a
+     * {@link GanttRenderer} as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param categoryAxisLabel  the label for the category axis
+     *                           ({@code null} permitted).
+     * @param dateAxisLabel  the label for the date axis
+     *                       ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A Gantt chart.
+     */
+    public static JFreeChart createGanttChart(String title,
+            String categoryAxisLabel, String dateAxisLabel,
+            IntervalCategoryDataset dataset, boolean legend, boolean tooltips,
+            boolean urls) {
+
+<span class="fc" id="L1163">        CategoryAxis categoryAxis = new CategoryAxis(categoryAxisLabel);</span>
+<span class="fc" id="L1164">        DateAxis dateAxis = new DateAxis(dateAxisLabel);</span>
+
+<span class="fc" id="L1166">        CategoryItemRenderer renderer = new GanttRenderer();</span>
+<span class="pc bpc" id="L1167" title="1 of 2 branches missed.">        if (tooltips) {</span>
+<span class="fc" id="L1168">            renderer.setDefaultToolTipGenerator(</span>
+                    new IntervalCategoryToolTipGenerator(
+<span class="fc" id="L1170">                    &quot;{3} - {4}&quot;, DateFormat.getDateInstance()));</span>
+        }
+<span class="pc bpc" id="L1172" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="fc" id="L1173">            renderer.setDefaultItemURLGenerator(</span>
+                    new StandardCategoryURLGenerator());
+        }
+
+<span class="fc" id="L1177">        CategoryPlot plot = new CategoryPlot(dataset, categoryAxis, dateAxis,</span>
+                renderer);
+<span class="fc" id="L1179">        plot.setOrientation(PlotOrientation.HORIZONTAL);</span>
+<span class="fc" id="L1180">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L1182">        currentTheme.apply(chart);</span>
+<span class="fc" id="L1183">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a waterfall chart.  The chart object returned by this method
+     * uses a {@link CategoryPlot} instance as the plot, with a
+     * {@link CategoryAxis} for the domain axis, a {@link NumberAxis} as the
+     * range axis, and a {@link WaterfallBarRenderer} as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param categoryAxisLabel  the label for the category axis
+     *                           ({@code null} permitted).
+     * @param valueAxisLabel  the label for the value axis ({@code null}
+     *                        permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the plot orientation (horizontal or vertical)
+     *                     ({@code null} NOT permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A waterfall chart.
+     */
+    public static JFreeChart createWaterfallChart(String title,
+            String categoryAxisLabel, String valueAxisLabel,
+            CategoryDataset dataset, PlotOrientation orientation,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L1212">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="fc" id="L1213">        CategoryAxis categoryAxis = new CategoryAxis(categoryAxisLabel);</span>
+<span class="fc" id="L1214">        categoryAxis.setCategoryMargin(0.0);</span>
+
+<span class="fc" id="L1216">        ValueAxis valueAxis = new NumberAxis(valueAxisLabel);</span>
+
+<span class="fc" id="L1218">        WaterfallBarRenderer renderer = new WaterfallBarRenderer();</span>
+<span class="pc bpc" id="L1219" title="1 of 2 branches missed.">        if (orientation == PlotOrientation.HORIZONTAL) {</span>
+<span class="fc" id="L1220">            ItemLabelPosition position = new ItemLabelPosition(</span>
+                    ItemLabelAnchor.CENTER, TextAnchor.CENTER,
+                    TextAnchor.CENTER, Math.PI / 2.0);
+<span class="fc" id="L1223">            renderer.setDefaultPositiveItemLabelPosition(position);</span>
+<span class="fc" id="L1224">            renderer.setDefaultNegativeItemLabelPosition(position);</span>
+<span class="fc" id="L1225">         }</span>
+<span class="nc bnc" id="L1226" title="All 2 branches missed.">        else if (orientation == PlotOrientation.VERTICAL) {</span>
+<span class="nc" id="L1227">            ItemLabelPosition position = new ItemLabelPosition(</span>
+                    ItemLabelAnchor.CENTER, TextAnchor.CENTER,
+                    TextAnchor.CENTER, 0.0);
+<span class="nc" id="L1230">            renderer.setDefaultPositiveItemLabelPosition(position);</span>
+<span class="nc" id="L1231">            renderer.setDefaultNegativeItemLabelPosition(position);</span>
+        }
+<span class="pc bpc" id="L1233" title="1 of 2 branches missed.">        if (tooltips) {</span>
+<span class="fc" id="L1234">            StandardCategoryToolTipGenerator generator</span>
+                = new StandardCategoryToolTipGenerator();
+<span class="fc" id="L1236">            renderer.setDefaultToolTipGenerator(generator);</span>
+        }
+<span class="pc bpc" id="L1238" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="fc" id="L1239">            renderer.setDefaultItemURLGenerator(</span>
+                    new StandardCategoryURLGenerator());
+        }
+
+<span class="fc" id="L1243">        CategoryPlot plot = new CategoryPlot(dataset, categoryAxis, valueAxis,</span>
+                renderer);
+<span class="fc" id="L1245">        plot.clearRangeMarkers();</span>
+<span class="fc" id="L1246">        Marker baseline = new ValueMarker(0.0);</span>
+<span class="fc" id="L1247">        baseline.setPaint(Color.BLACK);</span>
+<span class="fc" id="L1248">        plot.addRangeMarker(baseline, Layer.FOREGROUND);</span>
+<span class="fc" id="L1249">        plot.setOrientation(orientation);</span>
+<span class="fc" id="L1250">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L1252">        currentTheme.apply(chart);</span>
+<span class="fc" id="L1253">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a polar plot for the specified dataset (x-values interpreted as
+     * angles in degrees).  The chart object returned by this method uses a
+     * {@link PolarPlot} instance as the plot, with a {@link NumberAxis} for
+     * the radial axis.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset ({@code null} permitted).
+     * @param legend  legend required?
+     * @param tooltips  tooltips required?
+     * @param urls  URLs required?
+     *
+     * @return A chart.
+     */
+    public static JFreeChart createPolarChart(String title, XYDataset dataset,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="nc" id="L1274">        PolarPlot plot = new PolarPlot();</span>
+<span class="nc" id="L1275">        plot.setDataset(dataset);</span>
+<span class="nc" id="L1276">        NumberAxis rangeAxis = new NumberAxis();</span>
+<span class="nc" id="L1277">        rangeAxis.setAxisLineVisible(false);</span>
+<span class="nc" id="L1278">        rangeAxis.setTickMarksVisible(false);</span>
+<span class="nc" id="L1279">        rangeAxis.setTickLabelInsets(new RectangleInsets(0.0, 0.0, 0.0, 0.0));</span>
+<span class="nc" id="L1280">        plot.setAxis(rangeAxis);</span>
+<span class="nc" id="L1281">        plot.setRenderer(new DefaultPolarItemRenderer());</span>
+<span class="nc" id="L1282">        JFreeChart chart = new JFreeChart(</span>
+                title, JFreeChart.DEFAULT_TITLE_FONT, plot, legend);
+<span class="nc" id="L1284">        currentTheme.apply(chart);</span>
+<span class="nc" id="L1285">        return chart;</span>
+
+    }
+    
+    /**
+     * Creates a scatter plot with default settings.  The chart object
+     * returned by this method uses an {@link XYPlot} instance as the plot,
+     * with a {@link NumberAxis} for the domain axis, a  {@link NumberAxis}
+     * as the range axis, and an {@link XYLineAndShapeRenderer} as the
+     * renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A scatter plot.
+     */
+    public static JFreeChart createScatterPlot(String title, String xAxisLabel,
+            String yAxisLabel, XYDataset dataset) {
+<span class="fc" id="L1305">        return createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,</span>
+                PlotOrientation.VERTICAL, true, true, false);
+    }
+
+    /**
+     * Creates a scatter plot with default settings.  The chart object
+     * returned by this method uses an {@link XYPlot} instance as the plot,
+     * with a {@link NumberAxis} for the domain axis, a  {@link NumberAxis}
+     * as the range axis, and an {@link XYLineAndShapeRenderer} as the
+     * renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the plot orientation (horizontal or vertical)
+     *                     ({@code null} NOT permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A scatter plot.
+     */
+    public static JFreeChart createScatterPlot(String title, String xAxisLabel,
+            String yAxisLabel, XYDataset dataset, PlotOrientation orientation,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L1332">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="fc" id="L1333">        NumberAxis xAxis = new NumberAxis(xAxisLabel);</span>
+<span class="fc" id="L1334">        xAxis.setAutoRangeIncludesZero(false);</span>
+<span class="fc" id="L1335">        NumberAxis yAxis = new NumberAxis(yAxisLabel);</span>
+<span class="fc" id="L1336">        yAxis.setAutoRangeIncludesZero(false);</span>
+
+<span class="fc" id="L1338">        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, null);</span>
+
+<span class="fc" id="L1340">        XYToolTipGenerator toolTipGenerator = null;</span>
+<span class="pc bpc" id="L1341" title="1 of 2 branches missed.">        if (tooltips) {</span>
+<span class="fc" id="L1342">            toolTipGenerator = new StandardXYToolTipGenerator();</span>
+        }
+
+<span class="fc" id="L1345">        XYURLGenerator urlGenerator = null;</span>
+<span class="pc bpc" id="L1346" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L1347">            urlGenerator = new StandardXYURLGenerator();</span>
+        }
+<span class="fc" id="L1349">        XYItemRenderer renderer = new XYLineAndShapeRenderer(false, true);</span>
+<span class="fc" id="L1350">        renderer.setDefaultToolTipGenerator(toolTipGenerator);</span>
+<span class="fc" id="L1351">        renderer.setURLGenerator(urlGenerator);</span>
+<span class="fc" id="L1352">        plot.setRenderer(renderer);</span>
+<span class="fc" id="L1353">        plot.setOrientation(orientation);</span>
+
+<span class="fc" id="L1355">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L1357">        currentTheme.apply(chart);</span>
+<span class="fc" id="L1358">        return chart;</span>
+
+    }
+
+    /**
+     * Creates and returns a default instance of an XY bar chart.
+     * &lt;P&gt;
+     * The chart object returned by this method uses an {@link XYPlot} instance
+     * as the plot, with a {@link DateAxis} for the domain axis, a
+     * {@link NumberAxis} as the range axis, and a {@link XYBarRenderer} as the
+     * renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param dateAxis  make the domain axis display dates?
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return An XY bar chart.
+     */
+    public static JFreeChart createXYBarChart(String title, String xAxisLabel,
+            boolean dateAxis, String yAxisLabel, IntervalXYDataset dataset) {
+<span class="fc" id="L1380">        return createXYBarChart(title, xAxisLabel, dateAxis, yAxisLabel,</span>
+                dataset, PlotOrientation.VERTICAL, true, true, false);
+    }
+    
+    /**
+     * Creates and returns a default instance of an XY bar chart.
+     * &lt;P&gt;
+     * The chart object returned by this method uses an {@link XYPlot} instance
+     * as the plot, with a {@link DateAxis} for the domain axis, a
+     * {@link NumberAxis} as the range axis, and a {@link XYBarRenderer} as the
+     * renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param dateAxis  make the domain axis display dates?
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the orientation (horizontal or vertical)
+     *                     ({@code null} NOT permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return An XY bar chart.
+     */
+    public static JFreeChart createXYBarChart(String title, String xAxisLabel,
+            boolean dateAxis, String yAxisLabel, IntervalXYDataset dataset,
+            PlotOrientation orientation, boolean legend, boolean tooltips,
+            boolean urls) {
+
+<span class="fc" id="L1410">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+        ValueAxis domainAxis;
+<span class="pc bpc" id="L1412" title="1 of 2 branches missed.">        if (dateAxis) {</span>
+<span class="nc" id="L1413">            domainAxis = new DateAxis(xAxisLabel);</span>
+        }
+        else {
+<span class="fc" id="L1416">            NumberAxis axis = new NumberAxis(xAxisLabel);</span>
+<span class="fc" id="L1417">            axis.setAutoRangeIncludesZero(false);</span>
+<span class="fc" id="L1418">            domainAxis = axis;</span>
+        }
+<span class="fc" id="L1420">        ValueAxis valueAxis = new NumberAxis(yAxisLabel);</span>
+
+<span class="fc" id="L1422">        XYBarRenderer renderer = new XYBarRenderer();</span>
+<span class="fc bfc" id="L1423" title="All 2 branches covered.">        if (tooltips) {</span>
+            XYToolTipGenerator tt;
+<span class="pc bpc" id="L1425" title="1 of 2 branches missed.">            if (dateAxis) {</span>
+<span class="nc" id="L1426">                tt = StandardXYToolTipGenerator.getTimeSeriesInstance();</span>
+            }
+            else {
+<span class="fc" id="L1429">                tt = new StandardXYToolTipGenerator();</span>
+            }
+<span class="fc" id="L1431">            renderer.setDefaultToolTipGenerator(tt);</span>
+        }
+<span class="pc bpc" id="L1433" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L1434">            renderer.setURLGenerator(new StandardXYURLGenerator());</span>
+        }
+
+<span class="fc" id="L1437">        XYPlot plot = new XYPlot(dataset, domainAxis, valueAxis, renderer);</span>
+<span class="fc" id="L1438">        plot.setOrientation(orientation);</span>
+
+<span class="fc" id="L1440">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L1442">        currentTheme.apply(chart);</span>
+<span class="fc" id="L1443">        return chart;</span>
+
+    }
+
+    /**
+     * Creates an area chart using an {@link XYDataset}.
+     * &lt;P&gt;
+     * The chart object returned by this method uses an {@link XYPlot} instance
+     * as the plot, with a {@link NumberAxis} for the domain axis, a
+     * {@link NumberAxis} as the range axis, and a {@link XYAreaRenderer} as
+     * the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return An XY area chart.
+     */
+    public static JFreeChart createXYAreaChart(String title,String xAxisLabel,
+            String yAxisLabel, XYDataset dataset) {
+<span class="fc" id="L1464">        return createXYAreaChart(title, xAxisLabel, yAxisLabel, dataset, </span>
+                PlotOrientation.VERTICAL, true, true, false);
+    }
+    
+    /**
+     * Creates an area chart using an {@link XYDataset}.
+     * &lt;P&gt;
+     * The chart object returned by this method uses an {@link XYPlot} instance
+     * as the plot, with a {@link NumberAxis} for the domain axis, a
+     * {@link NumberAxis} as the range axis, and a {@link XYAreaRenderer} as
+     * the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the plot orientation (horizontal or vertical)
+     *                     ({@code null} NOT permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return An XY area chart.
+     */
+    public static JFreeChart createXYAreaChart(String title, String xAxisLabel,
+            String yAxisLabel, XYDataset dataset, PlotOrientation orientation,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L1492">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="fc" id="L1493">        NumberAxis xAxis = new NumberAxis(xAxisLabel);</span>
+<span class="fc" id="L1494">        xAxis.setAutoRangeIncludesZero(false);</span>
+<span class="fc" id="L1495">        NumberAxis yAxis = new NumberAxis(yAxisLabel);</span>
+<span class="fc" id="L1496">        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, null);</span>
+<span class="fc" id="L1497">        plot.setOrientation(orientation);</span>
+<span class="fc" id="L1498">        plot.setForegroundAlpha(0.5f);</span>
+
+<span class="fc" id="L1500">        XYToolTipGenerator tipGenerator = null;</span>
+<span class="pc bpc" id="L1501" title="1 of 2 branches missed.">        if (tooltips) {</span>
+<span class="fc" id="L1502">            tipGenerator = new StandardXYToolTipGenerator();</span>
+        }
+
+<span class="fc" id="L1505">        XYURLGenerator urlGenerator = null;</span>
+<span class="pc bpc" id="L1506" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L1507">            urlGenerator = new StandardXYURLGenerator();</span>
+        }
+
+<span class="fc" id="L1510">        plot.setRenderer(new XYAreaRenderer(XYAreaRenderer.AREA, tipGenerator,</span>
+                urlGenerator));
+<span class="fc" id="L1512">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L1514">        currentTheme.apply(chart);</span>
+<span class="fc" id="L1515">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a stacked XY area plot.  The chart object returned by this
+     * method uses an {@link XYPlot} instance as the plot, with a
+     * {@link NumberAxis} for the domain axis, a {@link NumberAxis} as the
+     * range axis, and a {@link StackedXYAreaRenderer2} as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A stacked XY area chart.
+     */
+    public static JFreeChart createStackedXYAreaChart(String title,
+            String xAxisLabel, String yAxisLabel, TableXYDataset dataset) {
+<span class="nc" id="L1534">        return createStackedXYAreaChart(title, xAxisLabel, yAxisLabel,</span>
+                dataset, PlotOrientation.VERTICAL, true, true, false);
+    }
+    
+    /**
+     * Creates a stacked XY area plot.  The chart object returned by this
+     * method uses an {@link XYPlot} instance as the plot, with a
+     * {@link NumberAxis} for the domain axis, a {@link NumberAxis} as the
+     * range axis, and a {@link StackedXYAreaRenderer2} as the renderer.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the plot orientation (horizontal or vertical)
+     *                     ({@code null} NOT permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A stacked XY area chart.
+     */
+    public static JFreeChart createStackedXYAreaChart(String title,
+            String xAxisLabel, String yAxisLabel, TableXYDataset dataset,
+            PlotOrientation orientation, boolean legend, boolean tooltips,
+            boolean urls) {
+
+<span class="fc" id="L1561">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="fc" id="L1562">        NumberAxis xAxis = new NumberAxis(xAxisLabel);</span>
+<span class="fc" id="L1563">        xAxis.setAutoRangeIncludesZero(false);</span>
+<span class="fc" id="L1564">        xAxis.setLowerMargin(0.0);</span>
+<span class="fc" id="L1565">        xAxis.setUpperMargin(0.0);</span>
+<span class="fc" id="L1566">        NumberAxis yAxis = new NumberAxis(yAxisLabel);</span>
+<span class="fc" id="L1567">        XYToolTipGenerator toolTipGenerator = null;</span>
+<span class="pc bpc" id="L1568" title="1 of 2 branches missed.">        if (tooltips) {</span>
+<span class="nc" id="L1569">            toolTipGenerator = new StandardXYToolTipGenerator();</span>
+        }
+
+<span class="fc" id="L1572">        XYURLGenerator urlGenerator = null;</span>
+<span class="pc bpc" id="L1573" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L1574">            urlGenerator = new StandardXYURLGenerator();</span>
+        }
+<span class="fc" id="L1576">        StackedXYAreaRenderer2 renderer = new StackedXYAreaRenderer2(</span>
+                toolTipGenerator, urlGenerator);
+<span class="fc" id="L1578">        renderer.setOutline(true);</span>
+<span class="fc" id="L1579">        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);</span>
+<span class="fc" id="L1580">        plot.setOrientation(orientation);</span>
+
+<span class="fc" id="L1582">        plot.setRangeAxis(yAxis);  // forces recalculation of the axis range</span>
+
+<span class="fc" id="L1584">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L1586">        currentTheme.apply(chart);</span>
+<span class="fc" id="L1587">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a line chart (based on an {@link XYDataset}) with default
+     * settings.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return The chart.
+     */
+    public static JFreeChart createXYLineChart(String title,
+            String xAxisLabel, String yAxisLabel, XYDataset dataset) {
+<span class="fc" id="L1604">        return createXYLineChart(title, xAxisLabel, yAxisLabel, dataset,</span>
+                PlotOrientation.VERTICAL, true, true, false);
+    }
+
+    /**
+     * Creates a line chart (based on an {@link XYDataset}) with default
+     * settings.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the plot orientation (horizontal or vertical)
+     *                     ({@code null} NOT permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return The chart.
+     */
+    public static JFreeChart createXYLineChart(String title, String xAxisLabel,
+            String yAxisLabel, XYDataset dataset, PlotOrientation orientation,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L1628">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="fc" id="L1629">        NumberAxis xAxis = new NumberAxis(xAxisLabel);</span>
+<span class="fc" id="L1630">        xAxis.setAutoRangeIncludesZero(false);</span>
+<span class="fc" id="L1631">        NumberAxis yAxis = new NumberAxis(yAxisLabel);</span>
+<span class="fc" id="L1632">        XYItemRenderer renderer = new XYLineAndShapeRenderer(true, false);</span>
+<span class="fc" id="L1633">        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);</span>
+<span class="fc" id="L1634">        plot.setOrientation(orientation);</span>
+<span class="fc bfc" id="L1635" title="All 2 branches covered.">        if (tooltips) {</span>
+<span class="fc" id="L1636">            renderer.setDefaultToolTipGenerator(new StandardXYToolTipGenerator());</span>
+        }
+<span class="pc bpc" id="L1638" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L1639">            renderer.setURLGenerator(new StandardXYURLGenerator());</span>
+        }
+
+<span class="fc" id="L1642">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L1644">        currentTheme.apply(chart);</span>
+<span class="fc" id="L1645">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a stepped XY plot with default settings.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A chart.
+     */
+    public static JFreeChart createXYStepChart(String title, String xAxisLabel,
+            String yAxisLabel, XYDataset dataset) {
+<span class="nc" id="L1661">        return createXYStepChart(title, xAxisLabel, yAxisLabel, dataset,</span>
+                PlotOrientation.VERTICAL, true, true, false);
+    }
+    
+    /**
+     * Creates a stepped XY plot with default settings.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the plot orientation (horizontal or vertical)
+     *                     ({@code null} NOT permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A chart.
+     */
+    public static JFreeChart createXYStepChart(String title, String xAxisLabel,
+            String yAxisLabel, XYDataset dataset, PlotOrientation orientation,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L1684">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="fc" id="L1685">        DateAxis xAxis = new DateAxis(xAxisLabel);</span>
+<span class="fc" id="L1686">        NumberAxis yAxis = new NumberAxis(yAxisLabel);</span>
+<span class="fc" id="L1687">        yAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());</span>
+
+<span class="fc" id="L1689">        XYToolTipGenerator toolTipGenerator = null;</span>
+<span class="pc bpc" id="L1690" title="1 of 2 branches missed.">        if (tooltips) {</span>
+<span class="fc" id="L1691">            toolTipGenerator = new StandardXYToolTipGenerator();</span>
+        }
+
+<span class="fc" id="L1694">        XYURLGenerator urlGenerator = null;</span>
+<span class="pc bpc" id="L1695" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="fc" id="L1696">            urlGenerator = new StandardXYURLGenerator();</span>
+        }
+<span class="fc" id="L1698">        XYItemRenderer renderer = new XYStepRenderer(toolTipGenerator,</span>
+                urlGenerator);
+
+<span class="fc" id="L1701">        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, null);</span>
+<span class="fc" id="L1702">        plot.setRenderer(renderer);</span>
+<span class="fc" id="L1703">        plot.setOrientation(orientation);</span>
+<span class="fc" id="L1704">        plot.setDomainCrosshairVisible(false);</span>
+<span class="fc" id="L1705">        plot.setRangeCrosshairVisible(false);</span>
+<span class="fc" id="L1706">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L1708">        currentTheme.apply(chart);</span>
+<span class="fc" id="L1709">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a filled stepped XY plot with default settings.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A chart.
+     */
+    public static JFreeChart createXYStepAreaChart(String title,
+            String xAxisLabel, String yAxisLabel, XYDataset dataset) {
+<span class="fc" id="L1725">        return createXYStepAreaChart(title, xAxisLabel, yAxisLabel, dataset,</span>
+                PlotOrientation.VERTICAL, true, true, false);   
+    }
+ 
+    /**
+     * Creates a filled stepped XY plot with default settings.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the plot orientation (horizontal or vertical)
+     *                     ({@code null} NOT permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A chart.
+     */
+    public static JFreeChart createXYStepAreaChart(String title, 
+            String xAxisLabel, String yAxisLabel, XYDataset dataset,
+            PlotOrientation orientation, boolean legend, boolean tooltips,
+            boolean urls) {
+
+<span class="fc" id="L1749">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="fc" id="L1750">        NumberAxis xAxis = new NumberAxis(xAxisLabel);</span>
+<span class="fc" id="L1751">        xAxis.setAutoRangeIncludesZero(false);</span>
+<span class="fc" id="L1752">        NumberAxis yAxis = new NumberAxis(yAxisLabel);</span>
+
+<span class="fc" id="L1754">        XYToolTipGenerator toolTipGenerator = null;</span>
+<span class="pc bpc" id="L1755" title="1 of 2 branches missed.">        if (tooltips) {</span>
+<span class="fc" id="L1756">            toolTipGenerator = new StandardXYToolTipGenerator();</span>
+        }
+
+<span class="fc" id="L1759">        XYURLGenerator urlGenerator = null;</span>
+<span class="pc bpc" id="L1760" title="1 of 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L1761">            urlGenerator = new StandardXYURLGenerator();</span>
+        }
+<span class="fc" id="L1763">        XYItemRenderer renderer = new XYStepAreaRenderer(</span>
+                XYStepAreaRenderer.AREA_AND_SHAPES, toolTipGenerator,
+                urlGenerator);
+
+<span class="fc" id="L1767">        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, null);</span>
+<span class="fc" id="L1768">        plot.setRenderer(renderer);</span>
+<span class="fc" id="L1769">        plot.setOrientation(orientation);</span>
+<span class="fc" id="L1770">        plot.setDomainCrosshairVisible(false);</span>
+<span class="fc" id="L1771">        plot.setRangeCrosshairVisible(false);</span>
+<span class="fc" id="L1772">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L1774">        currentTheme.apply(chart);</span>
+<span class="fc" id="L1775">        return chart;</span>
+    }
+
+    /**
+     * Creates and returns a time series chart.  A time series chart is an
+     * {@link XYPlot} with a {@link DateAxis} for the x-axis and a
+     * {@link NumberAxis} for the y-axis.  The default renderer is an
+     * {@link XYLineAndShapeRenderer}.
+     * &lt;P&gt;
+     * A convenient dataset to use with this chart is a
+     * {@link org.jfree.data.time.TimeSeriesCollection}.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param timeAxisLabel  a label for the time axis ({@code null}
+     *                       permitted).
+     * @param valueAxisLabel  a label for the value axis ({@code null}
+     *                        permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A time series chart.
+     */
+    public static JFreeChart createTimeSeriesChart(String title, 
+            String timeAxisLabel, String valueAxisLabel, XYDataset dataset) {
+<span class="fc" id="L1798">        return createTimeSeriesChart(title, timeAxisLabel, valueAxisLabel, </span>
+                dataset, true, true, false);
+    }
+    
+    /**
+     * Creates and returns a time series chart.  A time series chart is an
+     * {@link XYPlot} with a {@link DateAxis} for the x-axis and a
+     * {@link NumberAxis} for the y-axis.  The default renderer is an
+     * {@link XYLineAndShapeRenderer}.
+     * &lt;P&gt;
+     * A convenient dataset to use with this chart is a
+     * {@link org.jfree.data.time.TimeSeriesCollection}.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param timeAxisLabel  a label for the time axis ({@code null}
+     *                       permitted).
+     * @param valueAxisLabel  a label for the value axis ({@code null}
+     *                        permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A time series chart.
+     */
+    public static JFreeChart createTimeSeriesChart(String title,
+            String timeAxisLabel, String valueAxisLabel, XYDataset dataset,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="fc" id="L1827">        ValueAxis timeAxis = new DateAxis(timeAxisLabel);</span>
+<span class="fc" id="L1828">        timeAxis.setLowerMargin(0.02);  // reduce the default margins</span>
+<span class="fc" id="L1829">        timeAxis.setUpperMargin(0.02);</span>
+<span class="fc" id="L1830">        NumberAxis valueAxis = new NumberAxis(valueAxisLabel);</span>
+<span class="fc" id="L1831">        valueAxis.setAutoRangeIncludesZero(false);  // override default</span>
+<span class="fc" id="L1832">        XYPlot plot = new XYPlot(dataset, timeAxis, valueAxis, null);</span>
+
+<span class="fc" id="L1834">        XYToolTipGenerator toolTipGenerator = null;</span>
+<span class="pc bpc" id="L1835" title="1 of 2 branches missed.">        if (tooltips) {</span>
+            toolTipGenerator
+<span class="fc" id="L1837">                = StandardXYToolTipGenerator.getTimeSeriesInstance();</span>
+        }
+
+<span class="fc" id="L1840">        XYURLGenerator urlGenerator = null;</span>
+<span class="fc bfc" id="L1841" title="All 2 branches covered.">        if (urls) {</span>
+<span class="fc" id="L1842">            urlGenerator = new StandardXYURLGenerator();</span>
+        }
+
+<span class="fc" id="L1845">        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(true,</span>
+                false);
+<span class="fc" id="L1847">        renderer.setDefaultToolTipGenerator(toolTipGenerator);</span>
+<span class="fc" id="L1848">        renderer.setURLGenerator(urlGenerator);</span>
+<span class="fc" id="L1849">        plot.setRenderer(renderer);</span>
+
+<span class="fc" id="L1851">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L1853">        currentTheme.apply(chart);</span>
+<span class="fc" id="L1854">        return chart;</span>
+
+    }
+
+    /**
+     * Creates and returns a default instance of a candlesticks chart.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param timeAxisLabel  a label for the time axis ({@code null}
+     *                       permitted).
+     * @param valueAxisLabel  a label for the value axis ({@code null}
+     *                        permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     *
+     * @return A candlestick chart.
+     */
+    public static JFreeChart createCandlestickChart(String title,
+            String timeAxisLabel, String valueAxisLabel, OHLCDataset dataset,
+            boolean legend) {
+
+<span class="nc" id="L1875">        ValueAxis timeAxis = new DateAxis(timeAxisLabel);</span>
+<span class="nc" id="L1876">        NumberAxis valueAxis = new NumberAxis(valueAxisLabel);</span>
+<span class="nc" id="L1877">        XYPlot plot = new XYPlot(dataset, timeAxis, valueAxis, null);</span>
+<span class="nc" id="L1878">        plot.setRenderer(new CandlestickRenderer());</span>
+<span class="nc" id="L1879">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L1881">        currentTheme.apply(chart);</span>
+<span class="nc" id="L1882">        return chart;</span>
+
+    }
+
+    /**
+     * Creates and returns a default instance of a high-low-open-close chart.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param timeAxisLabel  a label for the time axis ({@code null}
+     *                       permitted).
+     * @param valueAxisLabel  a label for the value axis ({@code null}
+     *                        permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     *
+     * @return A high-low-open-close chart.
+     */
+    public static JFreeChart createHighLowChart(String title,
+            String timeAxisLabel, String valueAxisLabel, OHLCDataset dataset,
+            boolean legend) {
+
+<span class="nc" id="L1903">        ValueAxis timeAxis = new DateAxis(timeAxisLabel);</span>
+<span class="nc" id="L1904">        NumberAxis valueAxis = new NumberAxis(valueAxisLabel);</span>
+<span class="nc" id="L1905">        HighLowRenderer renderer = new HighLowRenderer();</span>
+<span class="nc" id="L1906">        renderer.setDefaultToolTipGenerator(new HighLowItemLabelGenerator());</span>
+<span class="nc" id="L1907">        XYPlot plot = new XYPlot(dataset, timeAxis, valueAxis, renderer);</span>
+<span class="nc" id="L1908">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L1910">        currentTheme.apply(chart);</span>
+<span class="nc" id="L1911">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a bubble chart with default settings.  The chart is composed of
+     * an {@link XYPlot}, with a {@link NumberAxis} for the domain axis,
+     * a {@link NumberAxis} for the range axis, and an {@link XYBubbleRenderer}
+     * to draw the data items.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     *
+     * @return A bubble chart.
+     */
+    public static JFreeChart createBubbleChart(String title, String xAxisLabel,
+            String yAxisLabel, XYZDataset dataset) {
+<span class="nc" id="L1930">        return createBubbleChart(title, xAxisLabel, yAxisLabel, dataset,</span>
+                PlotOrientation.VERTICAL, true, true, false);
+    }
+    
+    /**
+     * Creates a bubble chart with default settings.  The chart is composed of
+     * an {@link XYPlot}, with a {@link NumberAxis} for the domain axis,
+     * a {@link NumberAxis} for the range axis, and an {@link XYBubbleRenderer}
+     * to draw the data items.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the X-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the Y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param orientation  the orientation (horizontal or vertical)
+     *                     ({@code null} NOT permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A bubble chart.
+     */
+    public static JFreeChart createBubbleChart(String title, String xAxisLabel,
+            String yAxisLabel, XYZDataset dataset, PlotOrientation orientation,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="nc" id="L1956">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="nc" id="L1957">        NumberAxis xAxis = new NumberAxis(xAxisLabel);</span>
+<span class="nc" id="L1958">        xAxis.setAutoRangeIncludesZero(false);</span>
+<span class="nc" id="L1959">        NumberAxis yAxis = new NumberAxis(yAxisLabel);</span>
+<span class="nc" id="L1960">        yAxis.setAutoRangeIncludesZero(false);</span>
+
+<span class="nc" id="L1962">        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, null);</span>
+
+<span class="nc" id="L1964">        XYItemRenderer renderer = new XYBubbleRenderer(</span>
+                XYBubbleRenderer.SCALE_ON_RANGE_AXIS);
+<span class="nc bnc" id="L1966" title="All 2 branches missed.">        if (tooltips) {</span>
+<span class="nc" id="L1967">            renderer.setDefaultToolTipGenerator(new StandardXYZToolTipGenerator());</span>
+        }
+<span class="nc bnc" id="L1969" title="All 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L1970">            renderer.setURLGenerator(new StandardXYZURLGenerator());</span>
+        }
+<span class="nc" id="L1972">        plot.setRenderer(renderer);</span>
+<span class="nc" id="L1973">        plot.setOrientation(orientation);</span>
+
+<span class="nc" id="L1975">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L1977">        currentTheme.apply(chart);</span>
+<span class="nc" id="L1978">        return chart;</span>
+
+    }
+    
+    /**
+     * Creates a histogram chart.  This chart is constructed with an
+     * {@link XYPlot} using an {@link XYBarRenderer}.  The domain and range
+     * axes are {@link NumberAxis} instances.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  the x axis label ({@code null} permitted).
+     * @param yAxisLabel  the y axis label ({@code null} permitted).
+     * @param dataset  the dataset ({@code null} permitted).
+     * 
+     * @return A chart.
+     */
+    public static JFreeChart createHistogram(String title,
+            String xAxisLabel, String yAxisLabel, IntervalXYDataset dataset) {
+<span class="nc" id="L1996">        return createHistogram(title, xAxisLabel, yAxisLabel, dataset,</span>
+                PlotOrientation.VERTICAL, true, true, false);
+    }
+
+    /**
+     * Creates a histogram chart.  This chart is constructed with an
+     * {@link XYPlot} using an {@link XYBarRenderer}.  The domain and range
+     * axes are {@link NumberAxis} instances.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  the x axis label ({@code null} permitted).
+     * @param yAxisLabel  the y axis label ({@code null} permitted).
+     * @param dataset  the dataset ({@code null} permitted).
+     * @param orientation  the orientation (horizontal or vertical)
+     *                     ({@code null} NOT permitted).
+     * @param legend  create a legend?
+     * @param tooltips  display tooltips?
+     * @param urls  generate URLs?
+     *
+     * @return The chart.
+     */
+    public static JFreeChart createHistogram(String title,
+            String xAxisLabel, String yAxisLabel, IntervalXYDataset dataset,
+            PlotOrientation orientation, boolean legend, boolean tooltips,
+            boolean urls) {
+
+<span class="nc" id="L2022">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="nc" id="L2023">        NumberAxis xAxis = new NumberAxis(xAxisLabel);</span>
+<span class="nc" id="L2024">        xAxis.setAutoRangeIncludesZero(false);</span>
+<span class="nc" id="L2025">        ValueAxis yAxis = new NumberAxis(yAxisLabel);</span>
+
+<span class="nc" id="L2027">        XYItemRenderer renderer = new XYBarRenderer();</span>
+<span class="nc bnc" id="L2028" title="All 2 branches missed.">        if (tooltips) {</span>
+<span class="nc" id="L2029">            renderer.setDefaultToolTipGenerator(new StandardXYToolTipGenerator());</span>
+        }
+<span class="nc bnc" id="L2031" title="All 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L2032">            renderer.setURLGenerator(new StandardXYURLGenerator());</span>
+        }
+
+<span class="nc" id="L2035">        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);</span>
+<span class="nc" id="L2036">        plot.setOrientation(orientation);</span>
+<span class="nc" id="L2037">        plot.setDomainZeroBaselineVisible(true);</span>
+<span class="nc" id="L2038">        plot.setRangeZeroBaselineVisible(true);</span>
+<span class="nc" id="L2039">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L2041">        currentTheme.apply(chart);</span>
+<span class="nc" id="L2042">        return chart;</span>
+
+    }
+
+    /**
+     * Creates and returns a default instance of a box and whisker chart
+     * based on data from a {@link BoxAndWhiskerCategoryDataset}.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param categoryAxisLabel  a label for the category axis
+     *     ({@code null} permitted).
+     * @param valueAxisLabel  a label for the value axis ({@code null}
+     *     permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     *
+     * @return A box and whisker chart.
+     */
+    public static JFreeChart createBoxAndWhiskerChart(String title,
+            String categoryAxisLabel, String valueAxisLabel,
+            BoxAndWhiskerCategoryDataset dataset, boolean legend) {
+
+<span class="nc" id="L2064">        CategoryAxis categoryAxis = new CategoryAxis(categoryAxisLabel);</span>
+<span class="nc" id="L2065">        NumberAxis valueAxis = new NumberAxis(valueAxisLabel);</span>
+<span class="nc" id="L2066">        valueAxis.setAutoRangeIncludesZero(false);</span>
+
+<span class="nc" id="L2068">        BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRenderer();</span>
+<span class="nc" id="L2069">        renderer.setDefaultToolTipGenerator(new BoxAndWhiskerToolTipGenerator());</span>
+
+<span class="nc" id="L2071">        CategoryPlot plot = new CategoryPlot(dataset, categoryAxis, valueAxis,</span>
+                renderer);
+<span class="nc" id="L2073">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L2075">        currentTheme.apply(chart);</span>
+<span class="nc" id="L2076">        return chart;</span>
+    }
+
+    /**
+     * Creates and returns a default instance of a box and whisker chart.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param timeAxisLabel  a label for the time axis ({@code null}
+     *                       permitted).
+     * @param valueAxisLabel  a label for the value axis ({@code null}
+     *                        permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag specifying whether a legend is required.
+     *
+     * @return A box and whisker chart.
+     */
+    public static JFreeChart createBoxAndWhiskerChart(String title,
+            String timeAxisLabel, String valueAxisLabel,
+            BoxAndWhiskerXYDataset dataset, boolean legend) {
+
+<span class="fc" id="L2096">        ValueAxis timeAxis = new DateAxis(timeAxisLabel);</span>
+<span class="fc" id="L2097">        NumberAxis valueAxis = new NumberAxis(valueAxisLabel);</span>
+<span class="fc" id="L2098">        valueAxis.setAutoRangeIncludesZero(false);</span>
+<span class="fc" id="L2099">        XYBoxAndWhiskerRenderer renderer = new XYBoxAndWhiskerRenderer(10.0);</span>
+<span class="fc" id="L2100">        XYPlot plot = new XYPlot(dataset, timeAxis, valueAxis, renderer);</span>
+<span class="fc" id="L2101">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="fc" id="L2103">        currentTheme.apply(chart);</span>
+<span class="fc" id="L2104">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a wind plot with default settings.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param xAxisLabel  a label for the x-axis ({@code null} permitted).
+     * @param yAxisLabel  a label for the y-axis ({@code null} permitted).
+     * @param dataset  the dataset for the chart ({@code null} permitted).
+     * @param legend  a flag that controls whether a legend is created.
+     * @param tooltips  configure chart to generate tool tips?
+     * @param urls  configure chart to generate URLs?
+     *
+     * @return A wind plot.
+     *
+     */
+    public static JFreeChart createWindPlot(String title, String xAxisLabel,
+            String yAxisLabel, WindDataset dataset, boolean legend,
+            boolean tooltips, boolean urls) {
+
+<span class="nc" id="L2126">        ValueAxis xAxis = new DateAxis(xAxisLabel);</span>
+<span class="nc" id="L2127">        ValueAxis yAxis = new NumberAxis(yAxisLabel);</span>
+<span class="nc" id="L2128">        yAxis.setRange(-12.0, 12.0);</span>
+
+<span class="nc" id="L2130">        WindItemRenderer renderer = new WindItemRenderer();</span>
+<span class="nc bnc" id="L2131" title="All 2 branches missed.">        if (tooltips) {</span>
+<span class="nc" id="L2132">            renderer.setDefaultToolTipGenerator(new StandardXYToolTipGenerator());</span>
+        }
+<span class="nc bnc" id="L2134" title="All 2 branches missed.">        if (urls) {</span>
+<span class="nc" id="L2135">            renderer.setURLGenerator(new StandardXYURLGenerator());</span>
+        }
+<span class="nc" id="L2137">        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);</span>
+<span class="nc" id="L2138">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L2140">        currentTheme.apply(chart);</span>
+<span class="nc" id="L2141">        return chart;</span>
+
+    }
+
+    /**
+     * Creates a wafer map chart.
+     *
+     * @param title  the chart title ({@code null} permitted).
+     * @param dataset  the dataset ({@code null} permitted).
+     * @param orientation  the plot orientation (horizontal or vertical)
+     *                     ({@code null} NOT permitted.
+     * @param legend  display a legend?
+     * @param tooltips  generate tooltips?
+     * @param urls  generate URLs?
+     *
+     * @return A wafer map chart.
+     */
+    public static JFreeChart createWaferMapChart(String title,
+            WaferMapDataset dataset, PlotOrientation orientation,
+            boolean legend, boolean tooltips, boolean urls) {
+
+<span class="nc" id="L2162">        Args.nullNotPermitted(orientation, &quot;orientation&quot;);</span>
+<span class="nc" id="L2163">        WaferMapPlot plot = new WaferMapPlot(dataset);</span>
+<span class="nc" id="L2164">        WaferMapRenderer renderer = new WaferMapRenderer();</span>
+<span class="nc" id="L2165">        plot.setRenderer(renderer);</span>
+
+<span class="nc" id="L2167">        JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,</span>
+                plot, legend);
+<span class="nc" id="L2169">        currentTheme.apply(chart);</span>
+<span class="nc" id="L2170">        return chart;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

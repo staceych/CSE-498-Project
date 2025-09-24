@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CategoryItemEntity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart.entity</a> &gt; <span class="el_source">CategoryItemEntity.java</span></div><h1>CategoryItemEntity.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * -----------------------
+ * CategoryItemEntity.java
+ * -----------------------
+ * (C) Copyright 2002-present, by David Gilbert and Contributors.
+ *
+ * Original Author:  David Gilbert;
+ * Contributor(s):   Richard Atkinson;
+ *                   Christian W. Zuckschwerdt;
+ *                   Tracy Hiltbrand (equals/hashCode comply with EqualsVerifier);
+ *
+ */
+
+package org.jfree.chart.entity;
+
+import java.awt.Shape;
+import java.io.Serializable;
+import java.util.Objects;
+import org.jfree.chart.util.Args;
+
+import org.jfree.data.category.CategoryDataset;
+
+/**
+ * A chart entity that represents one item within a category plot.
+ */
+public class CategoryItemEntity extends ChartEntity
+        implements Cloneable, Serializable {
+
+    /** For serialization. */
+    private static final long serialVersionUID = -8657249457902337349L;
+
+    /** The dataset. */
+    private CategoryDataset dataset;
+
+    /**
+     * The row key.
+     */
+    private Comparable rowKey;
+
+    /**
+     * The column key.
+     */
+    private Comparable columnKey;
+
+    /**
+     * Creates a new entity instance for an item in the specified dataset.
+     *
+     * @param area  the 'hotspot' area ({@code null} not permitted).
+     * @param toolTipText  the tool tip text.
+     * @param urlText  the URL text.
+     * @param dataset  the dataset ({@code null} not permitted).
+     * @param rowKey  the row key ({@code null} not permitted).
+     * @param columnKey  the column key ({@code null} not permitted).
+     */
+    public CategoryItemEntity(Shape area, String toolTipText, String urlText,
+            CategoryDataset dataset, Comparable rowKey, Comparable columnKey) {
+<span class="fc" id="L82">        super(area, toolTipText, urlText);</span>
+<span class="fc" id="L83">        Args.nullNotPermitted(dataset, &quot;dataset&quot;);</span>
+<span class="fc" id="L84">        this.dataset = dataset;</span>
+<span class="fc" id="L85">        this.rowKey = rowKey;</span>
+<span class="fc" id="L86">        this.columnKey = columnKey;</span>
+<span class="fc" id="L87">    }</span>
+
+    /**
+     * Returns the dataset this entity refers to.  This can be used to
+     * differentiate between items in a chart that displays more than one
+     * dataset.
+     *
+     * @return The dataset (never {@code null}).
+     *
+     * @see #setDataset(CategoryDataset)
+     */
+    public CategoryDataset getDataset() {
+<span class="nc" id="L99">        return this.dataset;</span>
+    }
+
+    /**
+     * Sets the dataset this entity refers to.
+     *
+     * @param dataset  the dataset ({@code null} not permitted).
+     *
+     * @see #getDataset()
+     */
+    public void setDataset(CategoryDataset dataset) {
+<span class="nc" id="L110">        Args.nullNotPermitted(dataset, &quot;dataset&quot;);</span>
+<span class="nc" id="L111">        this.dataset = dataset;</span>
+<span class="nc" id="L112">    }</span>
+
+    /**
+     * Returns the row key.
+     *
+     * @return The row key (never {@code null}).
+     *
+     * @see #setRowKey(Comparable)
+     */
+    public Comparable getRowKey() {
+<span class="nc" id="L122">        return this.rowKey;</span>
+    }
+
+    /**
+     * Sets the row key.
+     *
+     * @param rowKey  the row key ({@code null} not permitted).
+     *
+     * @see #getRowKey()
+     */
+    public void setRowKey(Comparable rowKey) {
+<span class="nc" id="L133">        this.rowKey = rowKey;</span>
+<span class="nc" id="L134">    }</span>
+
+    /**
+     * Returns the column key.
+     *
+     * @return The column key (never {@code null}).
+     *
+     * @see #setColumnKey(Comparable)
+     */
+    public Comparable getColumnKey() {
+<span class="nc" id="L144">        return this.columnKey;</span>
+    }
+
+    /**
+     * Sets the column key.
+     *
+     * @param columnKey  the column key ({@code null} not permitted).
+     *
+     * @see #getColumnKey()
+     */
+    public void setColumnKey(Comparable columnKey) {
+<span class="nc" id="L155">        this.columnKey = columnKey;</span>
+<span class="nc" id="L156">    }</span>
+
+    /**
+     * Returns a string representing this object (useful for debugging
+     * purposes).
+     *
+     * @return A string (never {@code null}).
+     */
+    @Override
+    public String toString() {
+<span class="nc" id="L166">        return &quot;CategoryItemEntity: rowKey=&quot; + this.rowKey</span>
+               + &quot;, columnKey=&quot; + this.columnKey + &quot;, dataset=&quot; + this.dataset;
+    }
+
+    /**
+     * Tests the entity for equality with an arbitrary object.
+     *
+     * @param obj  the object ({@code null} permitted).
+     *
+     * @return A boolean.
+     */
+    @Override
+    public boolean equals(Object obj) {
+<span class="fc bfc" id="L179" title="All 2 branches covered.">        if (obj == this) {</span>
+<span class="fc" id="L180">            return true;</span>
+        }
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        if (!(obj instanceof CategoryItemEntity)) {</span>
+<span class="fc" id="L183">            return false;</span>
+        }
+<span class="fc" id="L185">        CategoryItemEntity that = (CategoryItemEntity) obj;</span>
+<span class="fc bfc" id="L186" title="All 2 branches covered.">        if (!Objects.equals(this.rowKey, that.rowKey)) {</span>
+<span class="fc" id="L187">            return false;</span>
+        }
+<span class="fc bfc" id="L189" title="All 2 branches covered.">        if (!Objects.equals(this.columnKey, that.columnKey)) {</span>
+<span class="fc" id="L190">            return false;</span>
+        }
+<span class="fc bfc" id="L192" title="All 2 branches covered.">        if (!Objects.equals(this.dataset, that.dataset)) {</span>
+<span class="fc" id="L193">            return false;</span>
+        }
+        
+        // fix the &quot;equals not symmetric&quot; problem
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">        if (!that.canEqual(this)) {</span>
+<span class="nc" id="L198">            return false;</span>
+        }
+        
+<span class="fc" id="L201">        return super.equals(obj);</span>
+    }
+
+    /**
+     * Ensures symmetry between super/subclass implementations of equals. For
+     * more detail, see http://jqno.nl/equalsverifier/manual/inheritance.
+     *
+     * @param other Object
+     * 
+     * @return true ONLY if the parameter is THIS class type
+     */
+    @Override
+    public boolean canEqual(Object other) {
+        // fix the &quot;equals not symmetric&quot; problem
+<span class="fc" id="L215">        return (other instanceof CategoryItemEntity);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L220">        int hash = super.hashCode(); // equals calls superclass, hashCode must also</span>
+<span class="fc" id="L221">        hash = 37 * hash + Objects.hashCode(this.dataset);</span>
+<span class="fc" id="L222">        hash = 37 * hash + Objects.hashCode(this.rowKey);</span>
+<span class="fc" id="L223">        hash = 37 * hash + Objects.hashCode(this.columnKey);</span>
+<span class="fc" id="L224">        return hash;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,929 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultPolarItemRenderer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart.renderer</a> &gt; <span class="el_source">DefaultPolarItemRenderer.java</span></div><h1>DefaultPolarItemRenderer.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * -----------------------------
+ * DefaultPolarItemRenderer.java
+ * -----------------------------
+ * (C) Copyright 2004-present, by Solution Engineering, Inc. and
+ *     Contributors.
+ *
+ * Original Author:  Daniel Bridenbecker, Solution Engineering, Inc.;
+ * Contributor(s):   David Gilbert;
+ *                   Martin Hoeller (patch 2850344);
+ * 
+ */
+
+package org.jfree.chart.renderer;
+
+import java.awt.AlphaComposite;
+import java.awt.Composite;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Point;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Line2D;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Rectangle2D;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+
+import org.jfree.chart.LegendItem;
+import org.jfree.chart.axis.NumberTick;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.entity.XYItemEntity;
+import org.jfree.chart.event.RendererChangeEvent;
+import org.jfree.chart.labels.XYSeriesLabelGenerator;
+import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.chart.plot.DrawingSupplier;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.PlotRenderingInfo;
+import org.jfree.chart.plot.PolarPlot;
+import org.jfree.chart.text.TextUtils;
+import org.jfree.chart.urls.XYURLGenerator;
+import org.jfree.chart.util.BooleanList;
+import org.jfree.chart.util.ObjectList;
+import org.jfree.chart.util.ObjectUtils;
+import org.jfree.chart.util.Args;
+import org.jfree.chart.util.PublicCloneable;
+import org.jfree.chart.util.SerialUtils;
+import org.jfree.chart.util.ShapeUtils;
+import org.jfree.data.xy.XYDataset;
+
+/**
+ * A renderer that can be used with the {@link PolarPlot} class.
+ */
+<span class="fc" id="L86">public class DefaultPolarItemRenderer extends AbstractRenderer</span>
+        implements PolarItemRenderer {
+
+    /** The plot that the renderer is assigned to. */
+    private PolarPlot plot;
+
+    /** Flags that control whether the renderer fills each series or not. */
+    private BooleanList seriesFilled;
+
+    /**
+     * Flag that controls whether an outline is drawn for filled series or
+     * not.
+     */
+    private boolean drawOutlineWhenFilled;
+
+    /**
+     * The composite to use when filling series.
+     */
+    private transient Composite fillComposite;
+
+    /**
+     * A flag that controls whether the fill paint is used for filling
+     * shapes.
+     */
+    private boolean useFillPaint;
+
+    /**
+     * The shape that is used to represent a line in the legend.
+     */
+    private transient Shape legendLine;
+
+    /**
+     * Flag that controls whether item shapes are visible or not.
+     */
+    private boolean shapesVisible;
+
+    /**
+     * Flag that controls if the first and last point of the dataset should be
+     * connected or not.
+     */
+    private boolean connectFirstAndLastPoint;
+    
+    /**
+     * A list of tool tip generators (one per series).
+     */
+    private ObjectList toolTipGeneratorList;
+
+    /**
+     * The base tool tip generator.
+     */
+    private XYToolTipGenerator baseToolTipGenerator;
+
+    /**
+     * The URL text generator.
+     */
+    private XYURLGenerator urlGenerator;
+
+    /**
+     * The legend item tool tip generator.
+     */
+    private XYSeriesLabelGenerator legendItemToolTipGenerator;
+
+    /**
+     * The legend item URL generator.
+     */
+    private XYSeriesLabelGenerator legendItemURLGenerator;
+
+    /**
+     * Creates a new instance of DefaultPolarItemRenderer
+     */
+<span class="fc" id="L156">    public DefaultPolarItemRenderer() {</span>
+<span class="fc" id="L157">        this.seriesFilled = new BooleanList();</span>
+<span class="fc" id="L158">        this.drawOutlineWhenFilled = true;</span>
+<span class="fc" id="L159">        this.fillComposite = AlphaComposite.getInstance(</span>
+                AlphaComposite.SRC_OVER, 0.3f);
+<span class="fc" id="L161">        this.useFillPaint = false;     // use item paint for fills by default</span>
+<span class="fc" id="L162">        this.legendLine = new Line2D.Double(-7.0, 0.0, 7.0, 0.0);</span>
+<span class="fc" id="L163">        this.shapesVisible = true;</span>
+<span class="fc" id="L164">        this.connectFirstAndLastPoint = true;</span>
+        
+<span class="fc" id="L166">        this.toolTipGeneratorList = new ObjectList();</span>
+<span class="fc" id="L167">        this.urlGenerator = null;</span>
+<span class="fc" id="L168">        this.legendItemToolTipGenerator = null;</span>
+<span class="fc" id="L169">        this.legendItemURLGenerator = null;</span>
+<span class="fc" id="L170">    }</span>
+
+    /**
+     * Set the plot associated with this renderer.
+     *
+     * @param plot  the plot.
+     *
+     * @see #getPlot()
+     */
+    @Override
+    public void setPlot(PolarPlot plot) {
+<span class="fc" id="L181">        this.plot = plot;</span>
+<span class="fc" id="L182">    }</span>
+
+    /**
+     * Return the plot associated with this renderer.
+     *
+     * @return The plot.
+     *
+     * @see #setPlot(PolarPlot)
+     */
+    @Override
+    public PolarPlot getPlot() {
+<span class="fc" id="L193">        return this.plot;</span>
+    }
+
+    /**
+     * Returns {@code true} if the renderer will draw an outline around
+     * a filled polygon, {@code false} otherwise.
+     *
+     * @return A boolean.
+     */
+    public boolean getDrawOutlineWhenFilled() {
+<span class="nc" id="L203">        return this.drawOutlineWhenFilled;</span>
+    }
+
+    /**
+     * Set the flag that controls whether the outline around a filled
+     * polygon will be drawn or not and sends a {@link RendererChangeEvent}
+     * to all registered listeners.
+     *
+     * @param drawOutlineWhenFilled  the flag.
+     */
+    public void setDrawOutlineWhenFilled(boolean drawOutlineWhenFilled) {
+<span class="nc" id="L214">        this.drawOutlineWhenFilled = drawOutlineWhenFilled;</span>
+<span class="nc" id="L215">        fireChangeEvent();</span>
+<span class="nc" id="L216">    }</span>
+
+    /**
+     * Get the composite that is used for filling.
+     *
+     * @return The composite (never {@code null}).
+     */
+    public Composite getFillComposite() {
+<span class="nc" id="L224">        return this.fillComposite;</span>
+    }
+
+    /**
+     * Sets the composite which will be used for filling polygons and sends a
+     * {@link RendererChangeEvent} to all registered listeners.
+     *
+     * @param composite  the composite to use ({@code null} not
+     *         permitted).
+     */
+    public void setFillComposite(Composite composite) {
+<span class="nc" id="L235">        Args.nullNotPermitted(composite, &quot;composite&quot;);</span>
+<span class="nc" id="L236">        this.fillComposite = composite;</span>
+<span class="nc" id="L237">        fireChangeEvent();</span>
+<span class="nc" id="L238">    }</span>
+
+    /**
+     * Returns {@code true} if a shape will be drawn for every item, or
+     * {@code false} if not.
+     *
+     * @return A boolean.
+     */
+    public boolean getShapesVisible() {
+<span class="fc" id="L247">        return this.shapesVisible;</span>
+    }
+
+    /**
+     * Set the flag that controls whether a shape will be drawn for every
+     * item, or not and sends a {@link RendererChangeEvent} to all registered
+     * listeners.
+     *
+     * @param visible  the flag.
+     */
+    public void setShapesVisible(boolean visible) {
+<span class="nc" id="L258">        this.shapesVisible = visible;</span>
+<span class="nc" id="L259">        fireChangeEvent();</span>
+<span class="nc" id="L260">    }</span>
+
+    /**
+     * Returns {@code true} if first and last point of a series will be
+     * connected, {@code false} otherwise.
+     * 
+     * @return The current status of the flag.
+     */
+    public boolean getConnectFirstAndLastPoint() {
+<span class="nc" id="L269">        return this.connectFirstAndLastPoint;</span>
+    }
+
+    /**
+     * Set the flag that controls whether the first and last point of a series
+     * will be connected or not and sends a {@link RendererChangeEvent} to all
+     * registered listeners.
+     * 
+     * @param connect the flag.
+     */
+    public void setConnectFirstAndLastPoint(boolean connect) {
+<span class="nc" id="L280">        this.connectFirstAndLastPoint = connect;</span>
+<span class="nc" id="L281">        fireChangeEvent();</span>
+<span class="nc" id="L282">    }</span>
+
+    /**
+     * Returns the drawing supplier from the plot.
+     *
+     * @return The drawing supplier.
+     */
+    @Override
+    public DrawingSupplier getDrawingSupplier() {
+<span class="fc" id="L291">        DrawingSupplier result = null;</span>
+<span class="fc" id="L292">        PolarPlot p = getPlot();</span>
+<span class="pc bpc" id="L293" title="1 of 2 branches missed.">        if (p != null) {</span>
+<span class="fc" id="L294">            result = p.getDrawingSupplier();</span>
+        }
+<span class="fc" id="L296">        return result;</span>
+    }
+
+    /**
+     * Returns {@code true} if the renderer should fill the specified
+     * series, and {@code false} otherwise.
+     *
+     * @param series  the series index (zero-based).
+     *
+     * @return A boolean.
+     */
+    public boolean isSeriesFilled(int series) {
+<span class="fc" id="L308">        boolean result = false;</span>
+<span class="fc" id="L309">        Boolean b = this.seriesFilled.getBoolean(series);</span>
+<span class="pc bpc" id="L310" title="1 of 2 branches missed.">        if (b != null) {</span>
+<span class="nc" id="L311">            result = b;</span>
+        }
+<span class="fc" id="L313">        return result;</span>
+    }
+
+    /**
+     * Sets a flag that controls whether a series is filled.
+     *
+     * @param series  the series index.
+     * @param filled  the flag.
+     */
+    public void setSeriesFilled(int series, boolean filled) {
+<span class="fc" id="L323">        this.seriesFilled.setBoolean(series, filled);</span>
+<span class="fc" id="L324">    }</span>
+
+    /**
+     * Returns {@code true} if the renderer should use the fill paint
+     * setting to fill shapes, and {@code false} if it should just
+     * use the regular paint.
+     *
+     * @return A boolean.
+     *
+     * @see #setUseFillPaint(boolean)
+     */
+    public boolean getUseFillPaint() {
+<span class="nc" id="L336">        return this.useFillPaint;</span>
+    }
+
+    /**
+     * Sets the flag that controls whether the fill paint is used to fill
+     * shapes, and sends a {@link RendererChangeEvent} to all
+     * registered listeners.
+     *
+     * @param flag  the flag.
+     *
+     * @see #getUseFillPaint()
+     */
+    public void setUseFillPaint(boolean flag) {
+<span class="nc" id="L349">        this.useFillPaint = flag;</span>
+<span class="nc" id="L350">        fireChangeEvent();</span>
+<span class="nc" id="L351">    }</span>
+
+    /**
+     * Returns the shape used to represent a line in the legend.
+     *
+     * @return The legend line (never {@code null}).
+     *
+     * @see #setLegendLine(Shape)
+     */
+    public Shape getLegendLine() {
+<span class="nc" id="L361">        return this.legendLine;</span>
+    }
+
+    /**
+     * Sets the shape used as a line in each legend item and sends a
+     * {@link RendererChangeEvent} to all registered listeners.
+     *
+     * @param line  the line ({@code null} not permitted).
+     *
+     * @see #getLegendLine()
+     */
+    public void setLegendLine(Shape line) {
+<span class="nc" id="L373">        Args.nullNotPermitted(line, &quot;line&quot;);</span>
+<span class="nc" id="L374">        this.legendLine = line;</span>
+<span class="nc" id="L375">        fireChangeEvent();</span>
+<span class="nc" id="L376">    }</span>
+
+    /**
+     * Adds an entity to the collection.
+     *
+     * @param entities  the entity collection being populated.
+     * @param area  the entity area (if {@code null} a default will be
+     *              used).
+     * @param dataset  the dataset.
+     * @param series  the series.
+     * @param item  the item.
+     * @param entityX  the entity's center x-coordinate in user space (only
+     *                 used if {@code area} is {@code null}).
+     * @param entityY  the entity's center y-coordinate in user space (only
+     *                 used if {@code area} is {@code null}).
+     */
+    protected void addEntity(EntityCollection entities, Shape area,
+                             XYDataset dataset, int series, int item,
+                             double entityX, double entityY) {
+<span class="nc bnc" id="L395" title="All 2 branches missed.">        if (!getItemCreateEntity(series, item)) {</span>
+<span class="nc" id="L396">            return;</span>
+        }
+<span class="nc" id="L398">        Shape hotspot = area;</span>
+<span class="nc bnc" id="L399" title="All 2 branches missed.">        if (hotspot == null) {</span>
+<span class="nc" id="L400">            double r = getDefaultEntityRadius();</span>
+<span class="nc" id="L401">            double w = r * 2;</span>
+<span class="nc bnc" id="L402" title="All 2 branches missed.">            if (getPlot().getOrientation() == PlotOrientation.VERTICAL) {</span>
+<span class="nc" id="L403">                hotspot = new Ellipse2D.Double(entityX - r, entityY - r, w, w);</span>
+            }
+            else {
+<span class="nc" id="L406">                hotspot = new Ellipse2D.Double(entityY - r, entityX - r, w, w);</span>
+            }
+        }
+<span class="nc" id="L409">        String tip = null;</span>
+<span class="nc" id="L410">        XYToolTipGenerator generator = getToolTipGenerator(series, item);</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">        if (generator != null) {</span>
+<span class="nc" id="L412">            tip = generator.generateToolTip(dataset, series, item);</span>
+        }
+<span class="nc" id="L414">        String url = null;</span>
+<span class="nc bnc" id="L415" title="All 2 branches missed.">        if (getURLGenerator() != null) {</span>
+<span class="nc" id="L416">            url = getURLGenerator().generateURL(dataset, series, item);</span>
+        }
+<span class="nc" id="L418">        XYItemEntity entity = new XYItemEntity(hotspot, dataset, series, item,</span>
+                tip, url);
+<span class="nc" id="L420">        entities.add(entity);</span>
+<span class="nc" id="L421">    }</span>
+
+    /**
+     * Plots the data for a given series.
+     *
+     * @param g2  the drawing surface.
+     * @param dataArea  the data area.
+     * @param info  collects plot rendering info.
+     * @param plot  the plot.
+     * @param dataset  the dataset.
+     * @param seriesIndex  the series index.
+     */
+    @Override
+    public void drawSeries(Graphics2D g2, Rectangle2D dataArea,
+            PlotRenderingInfo info, PolarPlot plot, XYDataset dataset,
+            int seriesIndex) {
+
+<span class="nc" id="L438">        final int numPoints = dataset.getItemCount(seriesIndex);</span>
+<span class="nc bnc" id="L439" title="All 2 branches missed.">        if (numPoints == 0) {</span>
+<span class="nc" id="L440">            return;</span>
+        }
+<span class="nc" id="L442">        GeneralPath poly = null;</span>
+<span class="nc" id="L443">        ValueAxis axis = plot.getAxisForDataset(plot.indexOf(dataset));</span>
+<span class="nc bnc" id="L444" title="All 2 branches missed.">        for (int i = 0; i &lt; numPoints; i++) {</span>
+<span class="nc" id="L445">            double theta = dataset.getXValue(seriesIndex, i);</span>
+<span class="nc" id="L446">            double radius = dataset.getYValue(seriesIndex, i);</span>
+<span class="nc" id="L447">            Point p = plot.translateToJava2D(theta, radius, axis, dataArea);</span>
+<span class="nc bnc" id="L448" title="All 2 branches missed.">            if (poly == null) {</span>
+<span class="nc" id="L449">                poly = new GeneralPath();</span>
+<span class="nc" id="L450">                poly.moveTo(p.x, p.y);</span>
+            }
+            else {
+<span class="nc" id="L453">                poly.lineTo(p.x, p.y);</span>
+            }
+        }
+<span class="nc bnc" id="L456" title="All 2 branches missed.">        assert poly != null;</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">        if (getConnectFirstAndLastPoint()) {</span>
+<span class="nc" id="L458">            poly.closePath();</span>
+        }
+
+<span class="nc" id="L461">        g2.setPaint(lookupSeriesPaint(seriesIndex));</span>
+<span class="nc" id="L462">        g2.setStroke(lookupSeriesStroke(seriesIndex));</span>
+<span class="nc bnc" id="L463" title="All 2 branches missed.">        if (isSeriesFilled(seriesIndex)) {</span>
+<span class="nc" id="L464">            Composite savedComposite = g2.getComposite();</span>
+<span class="nc" id="L465">            g2.setComposite(this.fillComposite);</span>
+<span class="nc" id="L466">            g2.fill(poly);</span>
+<span class="nc" id="L467">            g2.setComposite(savedComposite);</span>
+<span class="nc bnc" id="L468" title="All 2 branches missed.">            if (this.drawOutlineWhenFilled) {</span>
+                // draw the outline of the filled polygon
+<span class="nc" id="L470">                g2.setPaint(lookupSeriesOutlinePaint(seriesIndex));</span>
+<span class="nc" id="L471">                g2.draw(poly);</span>
+            }
+<span class="nc" id="L473">        }</span>
+        else {
+            // just the lines, no filling
+<span class="nc" id="L476">            g2.draw(poly);</span>
+        }
+        
+        // draw the item shapes
+<span class="nc bnc" id="L480" title="All 2 branches missed.">        if (this.shapesVisible) {</span>
+            // setup for collecting optional entity info...
+<span class="nc" id="L482">            EntityCollection entities = null;</span>
+<span class="nc bnc" id="L483" title="All 2 branches missed.">            if (info != null) {</span>
+<span class="nc" id="L484">                entities = info.getOwner().getEntityCollection();</span>
+            }
+
+<span class="nc" id="L487">            PathIterator pi = poly.getPathIterator(null);</span>
+<span class="nc" id="L488">            int i = 0;</span>
+<span class="nc bnc" id="L489" title="All 2 branches missed.">            while (!pi.isDone()) {</span>
+<span class="nc" id="L490">                final float[] coords = new float[6];</span>
+<span class="nc" id="L491">                final int segType = pi.currentSegment(coords);</span>
+<span class="nc" id="L492">                pi.next();</span>
+<span class="nc bnc" id="L493" title="All 4 branches missed.">                if (segType != PathIterator.SEG_LINETO &amp;&amp;</span>
+                        segType != PathIterator.SEG_MOVETO) {
+<span class="nc" id="L495">                    continue;</span>
+                }
+<span class="nc" id="L497">                final int x = Math.round(coords[0]);</span>
+<span class="nc" id="L498">                final int y = Math.round(coords[1]);</span>
+<span class="nc" id="L499">                final Shape shape = ShapeUtils.createTranslatedShape(</span>
+<span class="nc" id="L500">                        getItemShape(seriesIndex, i++), x,  y);</span>
+
+                Paint paint;
+<span class="nc bnc" id="L503" title="All 2 branches missed.">                if (useFillPaint) {</span>
+<span class="nc" id="L504">                    paint = lookupSeriesFillPaint(seriesIndex);</span>
+                }
+                else {
+<span class="nc" id="L507">                    paint = lookupSeriesPaint(seriesIndex);</span>
+                }
+<span class="nc" id="L509">                g2.setPaint(paint);</span>
+<span class="nc" id="L510">                g2.fill(shape);</span>
+<span class="nc bnc" id="L511" title="All 4 branches missed.">                if (isSeriesFilled(seriesIndex) &amp;&amp; this.drawOutlineWhenFilled) {</span>
+<span class="nc" id="L512">                    g2.setPaint(lookupSeriesOutlinePaint(seriesIndex));</span>
+<span class="nc" id="L513">                    g2.setStroke(lookupSeriesOutlineStroke(seriesIndex));</span>
+<span class="nc" id="L514">                    g2.draw(shape);</span>
+                }
+
+                // add an entity for the item, but only if it falls within the
+                // data area...
+<span class="nc bnc" id="L519" title="All 4 branches missed.">                if (entities != null &amp;&amp; ShapeUtils.isPointInRect(dataArea, x, </span>
+                        y)) {
+<span class="nc" id="L521">                    addEntity(entities, shape, dataset, seriesIndex, i-1, x, y);</span>
+                }
+<span class="nc" id="L523">            }</span>
+        }
+<span class="nc" id="L525">    }</span>
+
+    /**
+     * Draw the angular gridlines - the spokes.
+     *
+     * @param g2  the drawing surface.
+     * @param plot  the plot ({@code null} not permitted).
+     * @param ticks  the ticks ({@code null} not permitted).
+     * @param dataArea  the data area.
+     */
+    @Override
+    public void drawAngularGridLines(Graphics2D g2, PolarPlot plot,
+                List ticks, Rectangle2D dataArea) {
+
+<span class="nc" id="L539">        g2.setFont(plot.getAngleLabelFont());</span>
+<span class="nc" id="L540">        g2.setStroke(plot.getAngleGridlineStroke());</span>
+<span class="nc" id="L541">        g2.setPaint(plot.getAngleGridlinePaint());</span>
+
+<span class="nc" id="L543">        ValueAxis axis = plot.getAxis();</span>
+        double centerValue, outerValue;
+<span class="nc bnc" id="L545" title="All 2 branches missed.">        if (axis.isInverted()) {</span>
+<span class="nc" id="L546">            outerValue = axis.getLowerBound();</span>
+<span class="nc" id="L547">            centerValue = axis.getUpperBound();</span>
+        } else {
+<span class="nc" id="L549">            outerValue = axis.getUpperBound();</span>
+<span class="nc" id="L550">            centerValue = axis.getLowerBound();</span>
+        }
+<span class="nc" id="L552">        Point center = plot.translateToJava2D(0, centerValue, axis, dataArea);</span>
+<span class="nc" id="L553">        Iterator iterator = ticks.iterator();</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">        while (iterator.hasNext()) {</span>
+<span class="nc" id="L555">            NumberTick tick = (NumberTick) iterator.next();</span>
+<span class="nc" id="L556">            double tickVal = tick.getNumber().doubleValue();</span>
+<span class="nc" id="L557">            Point p = plot.translateToJava2D(tickVal, outerValue, axis, </span>
+                    dataArea);
+<span class="nc" id="L559">            g2.setPaint(plot.getAngleGridlinePaint());</span>
+<span class="nc" id="L560">            g2.drawLine(center.x, center.y, p.x, p.y);</span>
+<span class="nc bnc" id="L561" title="All 2 branches missed.">            if (plot.isAngleLabelsVisible()) {</span>
+<span class="nc" id="L562">                int x = p.x;</span>
+<span class="nc" id="L563">                int y = p.y;</span>
+<span class="nc" id="L564">                g2.setPaint(plot.getAngleLabelPaint());</span>
+<span class="nc" id="L565">                TextUtils.drawAlignedString(tick.getText(), g2, x, y,</span>
+<span class="nc" id="L566">                        tick.getTextAnchor());</span>
+            }
+<span class="nc" id="L568">        }</span>
+<span class="nc" id="L569">    }</span>
+
+    /**
+     * Draw the radial gridlines - the rings.
+     *
+     * @param g2  the drawing surface ({@code null} not permitted).
+     * @param plot  the plot ({@code null} not permitted).
+     * @param radialAxis  the radial axis ({@code null} not permitted).
+     * @param ticks  the ticks ({@code null} not permitted).
+     * @param dataArea  the data area.
+     */
+    @Override
+    public void drawRadialGridLines(Graphics2D g2, PolarPlot plot, 
+            ValueAxis radialAxis, List ticks, Rectangle2D dataArea) {
+
+<span class="nc" id="L584">        Args.nullNotPermitted(radialAxis, &quot;radialAxis&quot;);</span>
+<span class="nc" id="L585">        g2.setFont(radialAxis.getTickLabelFont());</span>
+<span class="nc" id="L586">        g2.setPaint(plot.getRadiusGridlinePaint());</span>
+<span class="nc" id="L587">        g2.setStroke(plot.getRadiusGridlineStroke());</span>
+
+        double centerValue;
+<span class="nc bnc" id="L590" title="All 2 branches missed.">        if (radialAxis.isInverted()) {</span>
+<span class="nc" id="L591">            centerValue = radialAxis.getUpperBound();</span>
+        } else {
+<span class="nc" id="L593">            centerValue = radialAxis.getLowerBound();</span>
+        }
+<span class="nc" id="L595">        Point center = plot.translateToJava2D(0, centerValue, radialAxis, dataArea);</span>
+
+<span class="nc" id="L597">        Iterator iterator = ticks.iterator();</span>
+<span class="nc bnc" id="L598" title="All 2 branches missed.">        while (iterator.hasNext()) {</span>
+<span class="nc" id="L599">            NumberTick tick = (NumberTick) iterator.next();</span>
+<span class="nc bnc" id="L600" title="All 2 branches missed.">            double angleDegrees = plot.isCounterClockwise() </span>
+<span class="nc" id="L601">                    ? plot.getAngleOffset() : -plot.getAngleOffset();</span>
+<span class="nc" id="L602">            Point p = plot.translateToJava2D(angleDegrees,</span>
+<span class="nc" id="L603">                    tick.getNumber().doubleValue(), radialAxis, dataArea);</span>
+<span class="nc" id="L604">            int r = p.x - center.x;</span>
+<span class="nc" id="L605">            int upperLeftX = center.x - r;</span>
+<span class="nc" id="L606">            int upperLeftY = center.y - r;</span>
+<span class="nc" id="L607">            int d = 2 * r;</span>
+<span class="nc" id="L608">            Ellipse2D ring = new Ellipse2D.Double(upperLeftX, upperLeftY, d, d);</span>
+<span class="nc" id="L609">            g2.setPaint(plot.getRadiusGridlinePaint());</span>
+<span class="nc" id="L610">            g2.draw(ring);</span>
+<span class="nc" id="L611">        }</span>
+<span class="nc" id="L612">    }</span>
+
+    /**
+     * Return the legend for the given series.
+     *
+     * @param series  the series index.
+     *
+     * @return The legend item.
+     */
+    @Override
+    public LegendItem getLegendItem(int series) {
+        LegendItem result;
+<span class="fc" id="L624">        PolarPlot p = getPlot();</span>
+<span class="pc bpc" id="L625" title="1 of 2 branches missed.">        if (p == null) {</span>
+<span class="nc" id="L626">            return null;</span>
+        }
+<span class="fc" id="L628">        XYDataset dataset = p.getDataset(p.getIndexOf(this));</span>
+<span class="pc bpc" id="L629" title="1 of 2 branches missed.">        if (dataset == null) {</span>
+<span class="nc" id="L630">            return null;</span>
+        }
+        
+<span class="fc" id="L633">        String toolTipText = null;</span>
+<span class="pc bpc" id="L634" title="1 of 2 branches missed.">        if (getLegendItemToolTipGenerator() != null) {</span>
+<span class="nc" id="L635">            toolTipText = getLegendItemToolTipGenerator().generateLabel(</span>
+                    dataset, series);
+        }
+<span class="fc" id="L638">        String urlText = null;</span>
+<span class="pc bpc" id="L639" title="1 of 2 branches missed.">        if (getLegendItemURLGenerator() != null) {</span>
+<span class="nc" id="L640">            urlText = getLegendItemURLGenerator().generateLabel(dataset,</span>
+                    series);
+        }
+
+<span class="fc" id="L644">        Comparable seriesKey = dataset.getSeriesKey(series);</span>
+<span class="fc" id="L645">        String label = seriesKey.toString();</span>
+<span class="fc" id="L646">        String description = label;</span>
+<span class="fc" id="L647">        Shape shape = lookupSeriesShape(series);</span>
+        Paint paint;
+<span class="pc bpc" id="L649" title="1 of 2 branches missed.">        if (this.useFillPaint) {</span>
+<span class="nc" id="L650">            paint = lookupSeriesFillPaint(series);</span>
+        }
+        else {
+<span class="fc" id="L653">            paint = lookupSeriesPaint(series);</span>
+        }
+<span class="fc" id="L655">        Stroke stroke = lookupSeriesStroke(series);</span>
+<span class="fc" id="L656">        Paint outlinePaint = lookupSeriesOutlinePaint(series);</span>
+<span class="fc" id="L657">        Stroke outlineStroke = lookupSeriesOutlineStroke(series);</span>
+<span class="pc bpc" id="L658" title="3 of 4 branches missed.">        boolean shapeOutlined = isSeriesFilled(series)</span>
+                &amp;&amp; this.drawOutlineWhenFilled;
+<span class="fc" id="L660">        result = new LegendItem(label, description, toolTipText, urlText,</span>
+<span class="fc" id="L661">                getShapesVisible(), shape, /* shapeFilled=*/ true, paint,</span>
+                shapeOutlined, outlinePaint, outlineStroke, 
+                /* lineVisible= */ true, this.legendLine, stroke, paint);
+<span class="fc" id="L664">        result.setToolTipText(toolTipText);</span>
+<span class="fc" id="L665">        result.setURLText(urlText);</span>
+<span class="fc" id="L666">        result.setDataset(dataset);</span>
+<span class="fc" id="L667">        result.setSeriesKey(seriesKey);</span>
+<span class="fc" id="L668">        result.setSeriesIndex(series);</span>
+
+<span class="fc" id="L670">        return result;</span>
+    }
+
+    /**
+     * Returns the tooltip generator for the specified series and item.
+     * 
+     * @param series  the series index.
+     * @param item  the item index.
+     * 
+     * @return The tooltip generator (possibly {@code null}).
+     */
+    @Override
+    public XYToolTipGenerator getToolTipGenerator(int series, int item) {
+<span class="nc" id="L683">        XYToolTipGenerator generator</span>
+<span class="nc" id="L684">            = (XYToolTipGenerator) this.toolTipGeneratorList.get(series);</span>
+<span class="nc bnc" id="L685" title="All 2 branches missed.">        if (generator == null) {</span>
+<span class="nc" id="L686">            generator = this.baseToolTipGenerator;</span>
+        }
+<span class="nc" id="L688">        return generator;</span>
+    }
+
+    /**
+     * Returns the tool tip generator for the specified series.
+     * 
+     * @return The tooltip generator (possibly {@code null}).
+     */
+    @Override
+    public XYToolTipGenerator getSeriesToolTipGenerator(int series) {
+<span class="nc" id="L698">        return (XYToolTipGenerator) this.toolTipGeneratorList.get(series);</span>
+    }
+
+    /**
+     * Sets the tooltip generator for the specified series.
+     * 
+     * @param series  the series index.
+     * @param generator  the tool tip generator ({@code null} permitted).
+     */
+    @Override
+    public void setSeriesToolTipGenerator(int series,
+            XYToolTipGenerator generator) {
+<span class="nc" id="L710">        this.toolTipGeneratorList.set(series, generator);</span>
+<span class="nc" id="L711">        fireChangeEvent();</span>
+<span class="nc" id="L712">    }</span>
+
+    /**
+     * Returns the default tool tip generator.
+     * 
+     * @return The default tool tip generator (possibly {@code null}).
+     */
+    @Override
+    public XYToolTipGenerator getBaseToolTipGenerator() {
+<span class="nc" id="L721">        return this.baseToolTipGenerator;</span>
+    }
+
+    /**
+     * Sets the default tool tip generator and sends a 
+     * {@link RendererChangeEvent} to all registered listeners.
+     * 
+     * @param generator  the generator ({@code null} permitted).
+     */
+    @Override
+    public void setBaseToolTipGenerator(XYToolTipGenerator generator) {
+<span class="nc" id="L732">        this.baseToolTipGenerator = generator;</span>
+<span class="nc" id="L733">        fireChangeEvent();</span>
+<span class="nc" id="L734">    }</span>
+
+    /**
+     * Returns the URL generator.
+     * 
+     * @return The URL generator (possibly {@code null}).
+     */
+    @Override
+    public XYURLGenerator getURLGenerator() {
+<span class="nc" id="L743">        return this.urlGenerator;</span>
+    }
+
+    /**
+     * Sets the URL generator.
+     * 
+     * @param urlGenerator  the generator ({@code null} permitted)
+     */
+    @Override
+    public void setURLGenerator(XYURLGenerator urlGenerator) {
+<span class="nc" id="L753">        this.urlGenerator = urlGenerator;</span>
+<span class="nc" id="L754">        fireChangeEvent();</span>
+<span class="nc" id="L755">    }</span>
+
+    /**
+     * Returns the legend item tool tip generator.
+     *
+     * @return The tool tip generator (possibly {@code null}).
+     *
+     * @see #setLegendItemToolTipGenerator(XYSeriesLabelGenerator)
+     */
+    public XYSeriesLabelGenerator getLegendItemToolTipGenerator() {
+<span class="fc" id="L765">        return this.legendItemToolTipGenerator;</span>
+    }
+
+    /**
+     * Sets the legend item tool tip generator and sends a
+     * {@link RendererChangeEvent} to all registered listeners.
+     *
+     * @param generator  the generator ({@code null} permitted).
+     *
+     * @see #getLegendItemToolTipGenerator()
+     */
+    public void setLegendItemToolTipGenerator(
+            XYSeriesLabelGenerator generator) {
+<span class="nc" id="L778">        this.legendItemToolTipGenerator = generator;</span>
+<span class="nc" id="L779">        fireChangeEvent();</span>
+<span class="nc" id="L780">    }</span>
+
+    /**
+     * Returns the legend item URL generator.
+     *
+     * @return The URL generator (possibly {@code null}).
+     *
+     * @see #setLegendItemURLGenerator(XYSeriesLabelGenerator)
+     */
+    public XYSeriesLabelGenerator getLegendItemURLGenerator() {
+<span class="fc" id="L790">        return this.legendItemURLGenerator;</span>
+    }
+
+    /**
+     * Sets the legend item URL generator and sends a
+     * {@link RendererChangeEvent} to all registered listeners.
+     *
+     * @param generator  the generator ({@code null} permitted).
+     *
+     * @see #getLegendItemURLGenerator()
+     */
+    public void setLegendItemURLGenerator(XYSeriesLabelGenerator generator) {
+<span class="nc" id="L802">        this.legendItemURLGenerator = generator;</span>
+<span class="nc" id="L803">        fireChangeEvent();</span>
+<span class="nc" id="L804">    }</span>
+
+    /**
+     * Tests this renderer for equality with an arbitrary object.
+     *
+     * @param obj  the object ({@code null} not permitted).
+     *
+     * @return {@code true} if this renderer is equal to {@code obj},
+     *     and {@code false} otherwise.
+     */
+    @Override
+    public boolean equals(Object obj) {
+<span class="pc bpc" id="L816" title="1 of 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L817">            return false;</span>
+        }
+<span class="pc bpc" id="L819" title="1 of 2 branches missed.">        if (!(obj instanceof DefaultPolarItemRenderer)) {</span>
+<span class="nc" id="L820">            return false;</span>
+        }
+<span class="fc" id="L822">        DefaultPolarItemRenderer that = (DefaultPolarItemRenderer) obj;</span>
+<span class="fc bfc" id="L823" title="All 2 branches covered.">        if (!this.seriesFilled.equals(that.seriesFilled)) {</span>
+<span class="fc" id="L824">            return false;</span>
+        }
+<span class="pc bpc" id="L826" title="1 of 2 branches missed.">        if (this.drawOutlineWhenFilled != that.drawOutlineWhenFilled) {</span>
+<span class="nc" id="L827">            return false;</span>
+        }
+<span class="pc bpc" id="L829" title="1 of 2 branches missed.">        if (!Objects.equals(this.fillComposite, that.fillComposite)) {</span>
+<span class="nc" id="L830">            return false;</span>
+        }
+<span class="pc bpc" id="L832" title="1 of 2 branches missed.">        if (this.useFillPaint != that.useFillPaint) {</span>
+<span class="nc" id="L833">            return false;</span>
+        }
+<span class="pc bpc" id="L835" title="1 of 2 branches missed.">        if (!ShapeUtils.equal(this.legendLine, that.legendLine)) {</span>
+<span class="nc" id="L836">            return false;</span>
+        }
+<span class="pc bpc" id="L838" title="1 of 2 branches missed.">        if (this.shapesVisible != that.shapesVisible) {</span>
+<span class="nc" id="L839">            return false;</span>
+        }
+<span class="pc bpc" id="L841" title="1 of 2 branches missed.">        if (this.connectFirstAndLastPoint != that.connectFirstAndLastPoint) {</span>
+<span class="nc" id="L842">            return false;</span>
+        }
+<span class="pc bpc" id="L844" title="1 of 2 branches missed.">        if (!this.toolTipGeneratorList.equals(that.toolTipGeneratorList)) {</span>
+<span class="nc" id="L845">            return false;</span>
+        }
+<span class="pc bpc" id="L847" title="1 of 2 branches missed.">        if (!Objects.equals(this.baseToolTipGenerator,</span>
+                that.baseToolTipGenerator)) {
+<span class="nc" id="L849">            return false;</span>
+        }
+<span class="pc bpc" id="L851" title="1 of 2 branches missed.">        if (!Objects.equals(this.urlGenerator, that.urlGenerator)) {</span>
+<span class="nc" id="L852">            return false;</span>
+        }
+<span class="pc bpc" id="L854" title="1 of 2 branches missed.">        if (!Objects.equals(this.legendItemToolTipGenerator,</span>
+                that.legendItemToolTipGenerator)) {
+<span class="nc" id="L856">            return false;</span>
+        }
+<span class="pc bpc" id="L858" title="1 of 2 branches missed.">        if (!Objects.equals(this.legendItemURLGenerator,</span>
+                that.legendItemURLGenerator)) {
+<span class="nc" id="L860">            return false;</span>
+        }
+<span class="fc" id="L862">        return super.equals(obj);</span>
+    }
+
+    /**
+     * Returns a clone of the renderer.
+     *
+     * @return A clone.
+     *
+     * @throws CloneNotSupportedException if the renderer cannot be cloned.
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+<span class="fc" id="L874">        DefaultPolarItemRenderer clone</span>
+<span class="fc" id="L875">                = (DefaultPolarItemRenderer) super.clone();</span>
+<span class="pc bpc" id="L876" title="1 of 2 branches missed.">        if (this.legendLine != null) {</span>
+<span class="fc" id="L877">            clone.legendLine = ShapeUtils.clone(this.legendLine);</span>
+        }
+<span class="fc" id="L879">        clone.seriesFilled = (BooleanList) this.seriesFilled.clone();</span>
+<span class="fc" id="L880">        clone.toolTipGeneratorList</span>
+<span class="fc" id="L881">                = (ObjectList) this.toolTipGeneratorList.clone();</span>
+<span class="pc bpc" id="L882" title="1 of 2 branches missed.">        if (clone.baseToolTipGenerator instanceof PublicCloneable) {</span>
+<span class="nc" id="L883">            clone.baseToolTipGenerator = (XYToolTipGenerator)</span>
+<span class="nc" id="L884">                    ObjectUtils.clone(this.baseToolTipGenerator);</span>
+        }
+<span class="pc bpc" id="L886" title="1 of 2 branches missed.">        if (clone.urlGenerator instanceof PublicCloneable) {</span>
+<span class="nc" id="L887">            clone.urlGenerator = (XYURLGenerator)</span>
+<span class="nc" id="L888">                    ObjectUtils.clone(this.urlGenerator);</span>
+        }
+<span class="pc bpc" id="L890" title="1 of 2 branches missed.">        if (clone.legendItemToolTipGenerator instanceof PublicCloneable) {</span>
+<span class="nc" id="L891">            clone.legendItemToolTipGenerator = (XYSeriesLabelGenerator)</span>
+<span class="nc" id="L892">                    ObjectUtils.clone(this.legendItemToolTipGenerator);</span>
+        }
+<span class="pc bpc" id="L894" title="1 of 2 branches missed.">        if (clone.legendItemURLGenerator instanceof PublicCloneable) {</span>
+<span class="nc" id="L895">            clone.legendItemURLGenerator = (XYSeriesLabelGenerator)</span>
+<span class="nc" id="L896">                    ObjectUtils.clone(this.legendItemURLGenerator);</span>
+        }
+<span class="fc" id="L898">        return clone;</span>
+    }
+
+    /**
+     * Provides serialization support.
+     *
+     * @param stream  the input stream.
+     *
+     * @throws IOException  if there is an I/O error.
+     * @throws ClassNotFoundException  if there is a classpath problem.
+     */
+    private void readObject(ObjectInputStream stream)
+            throws IOException, ClassNotFoundException {
+<span class="fc" id="L911">        stream.defaultReadObject();</span>
+<span class="fc" id="L912">        this.legendLine = SerialUtils.readShape(stream);</span>
+<span class="fc" id="L913">        this.fillComposite = SerialUtils.readComposite(stream);</span>
+<span class="fc" id="L914">    }</span>
+
+    /**
+     * Provides serialization support.
+     *
+     * @param stream  the output stream.
+     *
+     * @throws IOException  if there is an I/O error.
+     */
+    private void writeObject(ObjectOutputStream stream) throws IOException {
+<span class="fc" id="L924">        stream.defaultWriteObject();</span>
+<span class="fc" id="L925">        SerialUtils.writeShape(this.legendLine, stream);</span>
+<span class="fc" id="L926">        SerialUtils.writeComposite(this.fillComposite, stream);</span>
+<span class="fc" id="L927">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

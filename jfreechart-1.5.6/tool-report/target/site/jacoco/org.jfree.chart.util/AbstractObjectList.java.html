@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractObjectList.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart.util</a> &gt; <span class="el_source">AbstractObjectList.java</span></div><h1>AbstractObjectList.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ */
+
+package org.jfree.chart.util;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Objects;
+
+/**
+ * A list of objects that can grow as required.
+ */
+public class AbstractObjectList implements Cloneable, Serializable {
+
+    /** For serialization. */
+    private static final long serialVersionUID = 7789833772597351595L;
+    
+    /** The default initial capacity of the list. */
+    public static final int DEFAULT_INITIAL_CAPACITY = 8;
+
+    /** Storage for the objects. */
+    private transient Object[] objects;
+
+    /** The current list size. */
+<span class="fc" id="L53">    private int size = 0;</span>
+
+    /** The default increment. */
+<span class="fc" id="L56">    private int increment = DEFAULT_INITIAL_CAPACITY;</span>
+
+    /**
+     * Creates a new list with the default initial capacity.
+     */
+    protected AbstractObjectList() {
+<span class="fc" id="L62">        this(DEFAULT_INITIAL_CAPACITY);</span>
+<span class="fc" id="L63">    }</span>
+
+    /**
+     * Creates a new list.
+     *
+     * @param initialCapacity  the initial capacity.
+     */
+    protected AbstractObjectList(int initialCapacity) {
+<span class="fc" id="L71">        this (initialCapacity, initialCapacity);</span>
+<span class="fc" id="L72">    }</span>
+
+    /**
+     * Creates a new list.
+     * 
+     * @param initialCapacity  the initial capacity.
+     * @param increment  the increment.
+     */
+<span class="fc" id="L80">    protected AbstractObjectList(int initialCapacity, int increment) {</span>
+<span class="fc" id="L81">        this.objects = new Object[initialCapacity];</span>
+<span class="fc" id="L82">        this.increment = increment;</span>
+<span class="fc" id="L83">    }</span>
+
+    /**
+     * Returns the object at the specified index, if there is one, or 
+     * {@code null}.
+     *
+     * @param index  the object index.
+     *
+     * @return The object or {@code null}.
+     */
+    protected Object get(int index) {
+<span class="fc" id="L94">        Object result = null;</span>
+<span class="fc bfc" id="L95" title="All 4 branches covered.">        if (index &gt;= 0 &amp;&amp; index &lt; this.size) {</span>
+<span class="fc" id="L96">            result = this.objects[index];</span>
+        }
+<span class="fc" id="L98">        return result;</span>
+    }
+
+    /**
+     * Sets an object reference (overwriting any existing object).
+     *
+     * @param index  the object index.
+     * @param object  the object ({@code null} permitted).
+     */
+    protected void set(int index, Object object) {
+<span class="fc bfc" id="L108" title="All 2 branches covered.">        if (index &lt; 0) {</span>
+<span class="fc" id="L109">            throw new IllegalArgumentException(&quot;Requires index &gt;= 0.&quot;);</span>
+        }
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (index &gt;= this.objects.length) {</span>
+<span class="fc" id="L112">            Object[] enlarged = new Object[index + this.increment];</span>
+<span class="fc" id="L113">            System.arraycopy(this.objects, 0, enlarged, 0, this.objects.length);</span>
+<span class="fc" id="L114">            this.objects = enlarged;</span>
+        }
+<span class="fc" id="L116">        this.objects[index] = object;</span>
+<span class="fc" id="L117">        this.size = Math.max(this.size, index + 1);</span>
+<span class="fc" id="L118">    }</span>
+
+    /**
+     * Clears the list.
+     */
+    public void clear() {
+<span class="fc" id="L124">        Arrays.fill(this.objects, null);</span>
+<span class="fc" id="L125">        this.size = 0;</span>
+<span class="fc" id="L126">    }</span>
+
+    /**
+     * Returns the size of the list.
+     *
+     * @return The size of the list.
+     */
+    public int size() {
+<span class="fc" id="L134">        return this.size;</span>
+    }
+
+    /**
+     * Returns the index of the specified object, or -1 if the object is not in
+     * the list.
+     *
+     * @param object  the object.
+     *
+     * @return The index or -1.
+     */
+    protected int indexOf(Object object) {
+<span class="fc bfc" id="L146" title="All 2 branches covered.">        for (int index = 0; index &lt; this.size; index++) {</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">            if (this.objects[index] == object) {</span>
+<span class="fc" id="L148">                return (index);</span>
+            }
+        }
+<span class="fc" id="L151">        return -1;</span>
+    }
+
+    /**
+     * Tests this list for equality with another object.
+     *
+     * @param obj  the object to test.
+     * 
+     * @return A boolean.
+     */
+    @Override
+    public boolean equals(Object obj) {
+
+<span class="fc bfc" id="L164" title="All 2 branches covered.">        if (obj == null) {</span>
+<span class="fc" id="L165">            return false;</span>
+        }
+
+<span class="fc bfc" id="L168" title="All 2 branches covered.">        if (obj == this) {</span>
+<span class="fc" id="L169">            return true;</span>
+        }
+
+<span class="fc bfc" id="L172" title="All 2 branches covered.">        if (!(obj instanceof AbstractObjectList)) {</span>
+<span class="fc" id="L173">            return false;</span>
+        }
+
+<span class="fc" id="L176">        final AbstractObjectList other = (AbstractObjectList) obj;</span>
+<span class="fc" id="L177">        final int listSize = size();</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">        for (int i = 0; i &lt; listSize; i++) {</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">           if (!Objects.equals(get(i), other.get(i))) {</span>
+<span class="fc" id="L180">               return false;</span>
+           }
+        }
+<span class="fc" id="L183">        return true;</span>
+    }
+
+    /**
+     * Returns a hash code value for the object.
+     *
+     * @return the hashcode
+     */
+    @Override
+    public int hashCode() {
+<span class="fc" id="L193">        return Arrays.hashCode(objects);</span>
+    }
+
+    /**
+     * Clones the list of objects.  The objects in the list are not cloned, so 
+     * this is method makes a 'shallow' copy of the list.
+     *
+     * @return A clone.
+     * 
+     * @throws CloneNotSupportedException if an item in the list does not 
+     *         support cloning.
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+
+<span class="fc" id="L208">        final AbstractObjectList clone = (AbstractObjectList) super.clone();</span>
+<span class="pc bpc" id="L209" title="1 of 2 branches missed.">        if (this.objects != null) {</span>
+<span class="fc" id="L210">            clone.objects = new Object[this.objects.length];</span>
+<span class="fc" id="L211">            System.arraycopy(</span>
+                this.objects, 0, clone.objects, 0, this.objects.length
+            );
+        }
+<span class="fc" id="L215">        return clone;</span>
+
+    }
+
+    /**
+     * Provides serialization support.
+     *
+     * @param stream  the output stream.
+     *
+     * @throws IOException  if there is an I/O error.
+     */
+    private void writeObject(ObjectOutputStream stream) 
+        throws IOException {
+
+<span class="fc" id="L229">        stream.defaultWriteObject();</span>
+<span class="fc" id="L230">        final int count = size();</span>
+<span class="fc" id="L231">        stream.writeInt(count);</span>
+<span class="fc bfc" id="L232" title="All 2 branches covered.">        for (int i = 0; i &lt; count; i++) {</span>
+<span class="fc" id="L233">            final Object object = get(i);</span>
+<span class="fc bfc" id="L234" title="All 4 branches covered.">            if (object != null &amp;&amp; object instanceof Serializable) {</span>
+<span class="fc" id="L235">                stream.writeInt(i);</span>
+<span class="fc" id="L236">                stream.writeObject(object);</span>
+            }
+            else {
+<span class="fc" id="L239">                stream.writeInt(-1);</span>
+            }
+        }
+
+<span class="fc" id="L243">    }</span>
+    
+    /**
+     * Provides serialization support.
+     *
+     * @param stream  the input stream.
+     *
+     * @throws IOException  if there is an I/O error.
+     * @throws ClassNotFoundException  if there is a classpath problem.
+     */
+    private void readObject(ObjectInputStream stream) 
+        throws IOException, ClassNotFoundException {
+
+<span class="fc" id="L256">        stream.defaultReadObject();</span>
+<span class="fc" id="L257">        this.objects = new Object[this.size];</span>
+<span class="fc" id="L258">        final int count = stream.readInt();</span>
+<span class="fc bfc" id="L259" title="All 2 branches covered.">        for (int i = 0; i &lt; count; i++) {</span>
+<span class="fc" id="L260">            final int index = stream.readInt();</span>
+<span class="fc bfc" id="L261" title="All 2 branches covered.">            if (index != -1) {</span>
+<span class="fc" id="L262">                set(index, stream.readObject());</span>
+            }
+        }
+        
+<span class="fc" id="L266">    }</span>
+  
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

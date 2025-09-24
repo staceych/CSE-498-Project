@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HistogramBin.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.data.statistics</a> &gt; <span class="el_source">HistogramBin.java</span></div><h1>HistogramBin.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * -----------------
+ * HistogramBin.java
+ * -----------------
+ * (C) Copyright 2003-present, by Jelai Wang and Contributors.
+ *
+ * Original Author:  Jelai Wang (jelaiw AT mindspring.com);
+ * Contributor(s):   David Gilbert;
+ *
+ */
+
+package org.jfree.data.statistics;
+
+import java.io.Serializable;
+
+/**
+ * A bin for the {@link HistogramDataset} class.
+ */
+public class HistogramBin implements Cloneable, Serializable {
+
+    /** For serialization. */
+    private static final long serialVersionUID = 7614685080015589931L;
+
+    /** The number of items in the bin. */
+    private int count;
+
+    /** The start boundary. */
+    private double startBoundary;
+
+    /** The end boundary. */
+    private double endBoundary;
+
+    /**
+     * Creates a new bin.
+     *
+     * @param startBoundary  the start boundary.
+     * @param endBoundary  the end boundary.
+     */
+<span class="fc" id="L64">    public HistogramBin(double startBoundary, double endBoundary) {</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (startBoundary &gt; endBoundary) {</span>
+<span class="nc" id="L66">            throw new IllegalArgumentException(</span>
+                    &quot;HistogramBin():  startBoundary &gt; endBoundary.&quot;);
+        }
+<span class="fc" id="L69">        this.count = 0;</span>
+<span class="fc" id="L70">        this.startBoundary = startBoundary;</span>
+<span class="fc" id="L71">        this.endBoundary = endBoundary;</span>
+<span class="fc" id="L72">    }</span>
+
+    /**
+     * Returns the number of items in the bin.
+     *
+     * @return The item count.
+     */
+    public int getCount() {
+<span class="fc" id="L80">        return this.count;</span>
+    }
+
+    /**
+     * Increments the item count.
+     */
+    public void incrementCount() {
+<span class="fc" id="L87">        this.count++;</span>
+<span class="fc" id="L88">    }</span>
+
+    /**
+     * Returns the start boundary.
+     *
+     * @return The start boundary.
+     */
+    public double getStartBoundary() {
+<span class="fc" id="L96">        return this.startBoundary;</span>
+    }
+
+    /**
+     * Returns the end boundary.
+     *
+     * @return The end boundary.
+     */
+    public double getEndBoundary() {
+<span class="fc" id="L105">        return this.endBoundary;</span>
+    }
+
+    /**
+     * Returns the bin width.
+     *
+     * @return The bin width.
+     */
+    public double getBinWidth() {
+<span class="nc" id="L114">        return this.endBoundary - this.startBoundary;</span>
+    }
+
+    /**
+     * Tests this object for equality with an arbitrary object.
+     *
+     * @param obj  the object to test against.
+     *
+     * @return A boolean.
+     */
+    @Override
+    public boolean equals(Object obj) {
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L127">            return false;</span>
+        }
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (obj == this) {</span>
+<span class="nc" id="L130">            return true;</span>
+        }
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">        if (obj instanceof HistogramBin) {</span>
+<span class="fc" id="L133">            HistogramBin bin = (HistogramBin) obj;</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">            boolean b0 = bin.startBoundary == this.startBoundary;</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">            boolean b1 = bin.endBoundary == this.endBoundary;</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">            boolean b2 = bin.count == this.count;</span>
+<span class="pc bpc" id="L137" title="3 of 6 branches missed.">            return b0 &amp;&amp; b1 &amp;&amp; b2;</span>
+        }
+<span class="nc" id="L139">        return false;</span>
+    }
+
+    /**
+     * Returns a clone of the bin.
+     *
+     * @return A clone.
+     *
+     * @throws CloneNotSupportedException not thrown by this class.
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+<span class="fc" id="L151">        return super.clone();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

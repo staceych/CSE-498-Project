@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>XYTitleAnnotation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart.annotations</a> &gt; <span class="el_source">XYTitleAnnotation.java</span></div><h1>XYTitleAnnotation.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ----------------------
+ * XYTitleAnnotation.java
+ * ----------------------
+ * (C) Copyright 2007-present, by David Gilbert and Contributors.
+ *
+ * Original Author:  David Gilbert;
+ * Contributor(s):   Andrew Mickish;
+ *                   Peter Kolb (patch 2809117);
+ *                   Tracy Hiltbrand (equals/hashCode comply with EqualsVerifier);
+ *
+ */
+
+package org.jfree.chart.annotations;
+
+import java.awt.Graphics2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
+import java.util.Objects;
+import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.block.BlockParams;
+import org.jfree.chart.block.EntityBlockResult;
+import org.jfree.chart.block.RectangleConstraint;
+import org.jfree.chart.event.AnnotationChangeEvent;
+import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.PlotRenderingInfo;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.title.Title;
+import org.jfree.chart.ui.RectangleAnchor;
+import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.chart.ui.Size2D;
+import org.jfree.chart.util.Args;
+import org.jfree.chart.util.PublicCloneable;
+import org.jfree.chart.util.XYCoordinateType;
+import org.jfree.data.Range;
+
+/**
+ * An annotation that allows any {@link Title} to be placed at a location on
+ * an {@link XYPlot}.
+ */
+public class XYTitleAnnotation extends AbstractXYAnnotation
+        implements Cloneable, PublicCloneable, Serializable {
+
+    /** For serialization. */
+    private static final long serialVersionUID = -4364694501921559958L;
+
+    /** The coordinate type. */
+    private XYCoordinateType coordinateType;
+
+    /** The x-coordinate (in data space). */
+    private double x;
+
+    /** The y-coordinate (in data space). */
+    private double y;
+
+    /** The maximum width. */
+    private double maxWidth;
+
+    /** The maximum height. */
+    private double maxHeight;
+
+    /** The title. */
+    private Title title;
+
+    /**
+     * The title anchor point.
+     */
+    private RectangleAnchor anchor;
+
+    /**
+     * Creates a new annotation to be displayed at the specified (x, y)
+     * location.
+     *
+     * @param x  the x-coordinate (in data space).
+     * @param y  the y-coordinate (in data space).
+     * @param title  the title ({@code null} not permitted).
+     */
+    public XYTitleAnnotation(double x, double y, Title title) {
+<span class="fc" id="L107">        this(x, y, title, RectangleAnchor.CENTER);</span>
+<span class="fc" id="L108">    }</span>
+
+    /**
+     * Creates a new annotation to be displayed at the specified (x, y)
+     * location.
+     *
+     * @param x  the x-coordinate (in data space).
+     * @param y  the y-coordinate (in data space).
+     * @param title  the title ({@code null} not permitted).
+     * @param anchor  the title anchor ({@code null} not permitted).
+     */
+    public XYTitleAnnotation(double x, double y, Title title,
+            RectangleAnchor anchor) {
+<span class="fc" id="L121">        super();</span>
+<span class="fc" id="L122">        Args.nullNotPermitted(title, &quot;title&quot;);</span>
+<span class="fc" id="L123">        Args.nullNotPermitted(anchor, &quot;anchor&quot;);</span>
+<span class="fc" id="L124">        this.coordinateType = XYCoordinateType.RELATIVE;</span>
+<span class="fc" id="L125">        this.x = x;</span>
+<span class="fc" id="L126">        this.y = y;</span>
+<span class="fc" id="L127">        this.maxWidth = 0.0;</span>
+<span class="fc" id="L128">        this.maxHeight = 0.0;</span>
+<span class="fc" id="L129">        this.title = title;</span>
+<span class="fc" id="L130">        this.anchor = anchor;</span>
+<span class="fc" id="L131">    }</span>
+
+    /**
+     * Returns the coordinate type (set in the constructor).
+     *
+     * @return The coordinate type (never {@code null}).
+     */
+    public XYCoordinateType getCoordinateType() {
+<span class="nc" id="L139">        return this.coordinateType;</span>
+    }
+
+    /**
+     * Returns the x-coordinate for the annotation.
+     *
+     * @return The x-coordinate.
+     */
+    public double getX() {
+<span class="nc" id="L148">        return this.x;</span>
+    }
+
+    /**
+     * Returns the y-coordinate for the annotation.
+     *
+     * @return The y-coordinate.
+     */
+    public double getY() {
+<span class="nc" id="L157">        return this.y;</span>
+    }
+
+    /**
+     * Returns the title for the annotation.
+     *
+     * @return The title.
+     */
+    public Title getTitle() {
+<span class="nc" id="L166">        return this.title;</span>
+    }
+
+    /**
+     * Returns the title anchor for the annotation.
+     *
+     * @return The title anchor.
+     */
+    public RectangleAnchor getTitleAnchor() {
+<span class="nc" id="L175">        return this.anchor;</span>
+    }
+
+    /**
+     * Returns the maximum width.
+     *
+     * @return The maximum width.
+     */
+    public double getMaxWidth() {
+<span class="nc" id="L184">        return this.maxWidth;</span>
+    }
+
+    /**
+     * Sets the maximum width and sends an
+     * {@link AnnotationChangeEvent} to all registered listeners.
+     *
+     * @param max  the maximum width (0.0 or less means no maximum).
+     */
+    public void setMaxWidth(double max) {
+<span class="nc" id="L194">        this.maxWidth = max;</span>
+<span class="nc" id="L195">        fireAnnotationChanged();</span>
+<span class="nc" id="L196">    }</span>
+
+    /**
+     * Returns the maximum height.
+     *
+     * @return The maximum height.
+     */
+    public double getMaxHeight() {
+<span class="nc" id="L204">        return this.maxHeight;</span>
+    }
+
+    /**
+     * Sets the maximum height and sends an
+     * {@link AnnotationChangeEvent} to all registered listeners.
+     *
+     * @param max  the maximum height.
+     */
+    public void setMaxHeight(double max) {
+<span class="nc" id="L214">        this.maxHeight = max;</span>
+<span class="nc" id="L215">        fireAnnotationChanged();</span>
+<span class="nc" id="L216">    }</span>
+
+    /**
+     * Draws the annotation.  This method is called by the drawing code in the
+     * {@link XYPlot} class, you don't normally need to call this method
+     * directly.
+     *
+     * @param g2  the graphics device.
+     * @param plot  the plot.
+     * @param dataArea  the data area.
+     * @param domainAxis  the domain axis.
+     * @param rangeAxis  the range axis.
+     * @param rendererIndex  the renderer index.
+     * @param info  if supplied, this info object will be populated with
+     *              entity information.
+     */
+    @Override
+    public void draw(Graphics2D g2, XYPlot plot, Rectangle2D dataArea,
+                     ValueAxis domainAxis, ValueAxis rangeAxis,
+                     int rendererIndex, PlotRenderingInfo info) {
+
+<span class="fc" id="L237">        PlotOrientation orientation = plot.getOrientation();</span>
+<span class="fc" id="L238">        AxisLocation domainAxisLocation = plot.getDomainAxisLocation();</span>
+<span class="fc" id="L239">        AxisLocation rangeAxisLocation = plot.getRangeAxisLocation();</span>
+<span class="fc" id="L240">        RectangleEdge domainEdge = Plot.resolveDomainAxisLocation(</span>
+                domainAxisLocation, orientation);
+<span class="fc" id="L242">        RectangleEdge rangeEdge = Plot.resolveRangeAxisLocation(</span>
+                rangeAxisLocation, orientation);
+<span class="fc" id="L244">        Range xRange = domainAxis.getRange();</span>
+<span class="fc" id="L245">        Range yRange = rangeAxis.getRange();</span>
+        double anchorX, anchorY;
+<span class="pc bpc" id="L247" title="1 of 2 branches missed.">        if (this.coordinateType == XYCoordinateType.RELATIVE) {</span>
+<span class="fc" id="L248">            anchorX = xRange.getLowerBound() + (this.x * xRange.getLength());</span>
+<span class="fc" id="L249">            anchorY = yRange.getLowerBound() + (this.y * yRange.getLength());</span>
+        }
+        else {
+<span class="nc" id="L252">            anchorX = domainAxis.valueToJava2D(this.x, dataArea, domainEdge);</span>
+<span class="nc" id="L253">            anchorY = rangeAxis.valueToJava2D(this.y, dataArea, rangeEdge);</span>
+        }
+
+<span class="fc" id="L256">        float j2DX = (float) domainAxis.valueToJava2D(anchorX, dataArea,</span>
+                domainEdge);
+<span class="fc" id="L258">        float j2DY = (float) rangeAxis.valueToJava2D(anchorY, dataArea,</span>
+                rangeEdge);
+<span class="fc" id="L260">        float xx = 0.0f;</span>
+<span class="fc" id="L261">        float yy = 0.0f;</span>
+<span class="pc bpc" id="L262" title="1 of 2 branches missed.">        if (orientation == PlotOrientation.HORIZONTAL) {</span>
+<span class="nc" id="L263">            xx = j2DY;</span>
+<span class="nc" id="L264">            yy = j2DX;</span>
+        }
+<span class="pc bpc" id="L266" title="1 of 2 branches missed.">        else if (orientation == PlotOrientation.VERTICAL) {</span>
+<span class="fc" id="L267">            xx = j2DX;</span>
+<span class="fc" id="L268">            yy = j2DY;</span>
+        }
+
+<span class="fc" id="L271">        double maxW = dataArea.getWidth();</span>
+<span class="fc" id="L272">        double maxH = dataArea.getHeight();</span>
+<span class="pc bpc" id="L273" title="1 of 2 branches missed.">        if (this.coordinateType == XYCoordinateType.RELATIVE) {</span>
+<span class="pc bpc" id="L274" title="1 of 2 branches missed.">            if (this.maxWidth &gt; 0.0) {</span>
+<span class="nc" id="L275">                maxW = maxW * this.maxWidth;</span>
+            }
+<span class="pc bpc" id="L277" title="1 of 2 branches missed.">            if (this.maxHeight &gt; 0.0) {</span>
+<span class="nc" id="L278">                maxH = maxH * this.maxHeight;</span>
+            }
+        }
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">        if (this.coordinateType == XYCoordinateType.DATA) {</span>
+<span class="nc" id="L282">            maxW = this.maxWidth;</span>
+<span class="nc" id="L283">            maxH = this.maxHeight;</span>
+        }
+<span class="fc" id="L285">        RectangleConstraint rc = new RectangleConstraint(</span>
+                new Range(0, maxW), new Range(0, maxH));
+
+<span class="fc" id="L288">        Size2D size = this.title.arrange(g2, rc);</span>
+<span class="fc" id="L289">        Rectangle2D titleRect = new Rectangle2D.Double(0, 0, size.width,</span>
+                size.height);
+<span class="fc" id="L291">        Point2D anchorPoint = this.anchor.getAnchorPoint(titleRect);</span>
+<span class="fc" id="L292">        xx = xx - (float) anchorPoint.getX();</span>
+<span class="fc" id="L293">        yy = yy - (float) anchorPoint.getY();</span>
+<span class="fc" id="L294">        titleRect.setRect(xx, yy, titleRect.getWidth(), titleRect.getHeight());</span>
+<span class="fc" id="L295">        BlockParams p = new BlockParams();</span>
+<span class="pc bpc" id="L296" title="1 of 2 branches missed.">        if (info != null) {</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">            if (info.getOwner().getEntityCollection() != null) {</span>
+<span class="nc" id="L298">                p.setGenerateEntities(true);</span>
+            }
+        }
+<span class="fc" id="L301">        Object result = this.title.draw(g2, titleRect, p);</span>
+<span class="pc bpc" id="L302" title="1 of 2 branches missed.">        if (info != null) {</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">            if (result instanceof EntityBlockResult) {</span>
+<span class="nc" id="L304">                EntityBlockResult ebr = (EntityBlockResult) result;</span>
+<span class="nc" id="L305">                info.getOwner().getEntityCollection().addAll(</span>
+<span class="nc" id="L306">                        ebr.getEntityCollection());</span>
+            }
+<span class="nc" id="L308">            String toolTip = getToolTipText();</span>
+<span class="nc" id="L309">            String url = getURL();</span>
+<span class="nc bnc" id="L310" title="All 4 branches missed.">            if (toolTip != null || url != null) {</span>
+<span class="nc" id="L311">                addEntity(info, new Rectangle2D.Float(xx, yy,</span>
+                        (float) size.width, (float) size.height),
+                        rendererIndex, toolTip, url);
+            }
+        }
+<span class="fc" id="L316">    }</span>
+
+    /**
+     * Tests this object for equality with an arbitrary object.
+     *
+     * @param obj  the object ({@code null} permitted).
+     *
+     * @return A boolean.
+     */
+    @Override
+    public boolean equals(Object obj) {
+<span class="fc bfc" id="L327" title="All 2 branches covered.">        if (obj == this) {</span>
+<span class="fc" id="L328">            return true;</span>
+        }
+<span class="fc bfc" id="L330" title="All 2 branches covered.">        if (!(obj instanceof XYTitleAnnotation)) {</span>
+<span class="fc" id="L331">            return false;</span>
+        }
+<span class="fc" id="L333">        XYTitleAnnotation that = (XYTitleAnnotation) obj;</span>
+<span class="fc bfc" id="L334" title="All 2 branches covered.">        if (Double.doubleToLongBits(this.x) != Double.doubleToLongBits(that.x)) {</span>
+<span class="fc" id="L335">            return false;</span>
+        }
+<span class="fc bfc" id="L337" title="All 2 branches covered.">        if (Double.doubleToLongBits(this.y) != Double.doubleToLongBits(that.y)) {</span>
+<span class="fc" id="L338">            return false;</span>
+        }
+<span class="fc bfc" id="L340" title="All 2 branches covered.">        if (Double.doubleToLongBits(this.maxWidth) != Double.doubleToLongBits(that.maxWidth)) {</span>
+<span class="fc" id="L341">            return false;</span>
+        }
+<span class="fc bfc" id="L343" title="All 2 branches covered.">        if (Double.doubleToLongBits(this.maxHeight) != Double.doubleToLongBits(that.maxHeight)) {</span>
+<span class="fc" id="L344">            return false;</span>
+        }
+<span class="fc bfc" id="L346" title="All 2 branches covered.">        if (!Objects.equals(this.coordinateType, that.coordinateType)) {</span>
+<span class="fc" id="L347">            return false;</span>
+        }
+<span class="fc bfc" id="L349" title="All 2 branches covered.">        if (!Objects.equals(this.title, that.title)) {</span>
+<span class="fc" id="L350">            return false;</span>
+        }
+<span class="fc bfc" id="L352" title="All 2 branches covered.">        if (!Objects.equals(this.anchor, that.anchor)){</span>
+<span class="fc" id="L353">            return false;</span>
+        }
+
+        // fix the &quot;equals not symmetric&quot; problem
+<span class="pc bpc" id="L357" title="1 of 2 branches missed.">        if (!that.canEqual(this)) {</span>
+<span class="nc" id="L358">            return false;</span>
+        }
+
+<span class="fc" id="L361">        return super.equals(obj);</span>
+    }
+
+    /**
+     * Ensures symmetry between super/subclass implementations of equals. For
+     * more detail, see http://jqno.nl/equalsverifier/manual/inheritance.
+     *
+     * @param other Object
+     * 
+     * @return true ONLY if the parameter is THIS class type
+     */
+    @Override
+    public boolean canEqual(Object other) {
+        // fix the &quot;equals not symmetric&quot; problem
+<span class="fc" id="L375">        return (other instanceof XYTitleAnnotation);</span>
+    }
+
+    /**
+     * Returns a hash code for this object.
+     *
+     * @return A hash code.
+     */
+    @Override
+    public int hashCode() {
+<span class="fc" id="L385">        int result = super.hashCode(); // equals calls superclass, hashCode must also</span>
+<span class="fc" id="L386">        result = 67 * result + Objects.hashCode(this.coordinateType);</span>
+<span class="fc" id="L387">        result = 67 * result + (int) (Double.doubleToLongBits(this.x) ^ </span>
+<span class="fc" id="L388">                                     (Double.doubleToLongBits(this.x) &gt;&gt;&gt; 32));</span>
+<span class="fc" id="L389">        result = 67 * result + (int) (Double.doubleToLongBits(this.y) ^ </span>
+<span class="fc" id="L390">                                     (Double.doubleToLongBits(this.y) &gt;&gt;&gt; 32));</span>
+<span class="fc" id="L391">        result = 67 * result + (int) (Double.doubleToLongBits(this.maxWidth) ^ </span>
+<span class="fc" id="L392">                                     (Double.doubleToLongBits(this.maxWidth) &gt;&gt;&gt; 32));</span>
+<span class="fc" id="L393">        result = 67 * result + (int) (Double.doubleToLongBits(this.maxHeight) ^ </span>
+<span class="fc" id="L394">                                     (Double.doubleToLongBits(this.maxHeight) &gt;&gt;&gt; 32));</span>
+<span class="fc" id="L395">        result = 67 * result + Objects.hashCode(this.title);</span>
+<span class="fc" id="L396">        result = 67 * result + Objects.hashCode(this.anchor);</span>
+<span class="fc" id="L397">        return result;</span>
+    }
+
+    /**
+     * Returns a clone of the annotation.
+     *
+     * @return A clone.
+     *
+     * @throws CloneNotSupportedException  if the annotation can't be cloned.
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+<span class="fc" id="L409">        return super.clone();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TickUnits.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart.axis</a> &gt; <span class="el_source">TickUnits.java</span></div><h1>TickUnits.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * --------------
+ * TickUnits.java
+ * --------------
+ * (C) Copyright 2001-present, by David Gilbert.
+ *
+ * Original Author:  David Gilbert;
+ * Contributor(s):   -;
+ *
+ */
+
+package org.jfree.chart.axis;
+
+import java.io.Serializable;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * A collection of tick units, used by the {@link DateAxis} and
+ * {@link NumberAxis} classes.
+ */
+public class TickUnits implements TickUnitSource, Cloneable, Serializable {
+
+    /** For serialization. */
+    private static final long serialVersionUID = 1134174035901467545L;
+
+    /** Storage for the tick units. */
+    private List tickUnits;
+
+    /**
+     * Constructs a new collection of tick units.
+     */
+<span class="fc" id="L60">    public TickUnits() {</span>
+<span class="fc" id="L61">        this.tickUnits = new ArrayList();</span>
+<span class="fc" id="L62">    }</span>
+
+    /**
+     * Adds a tick unit to the collection.  The tick units are maintained in
+     * ascending order.
+     *
+     * @param unit  the tick unit to add ({@code null} not permitted).
+     */
+    public void add(TickUnit unit) {
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (unit == null) {</span>
+<span class="nc" id="L72">            throw new NullPointerException(&quot;Null 'unit' argument.&quot;);</span>
+        }
+<span class="fc" id="L74">        this.tickUnits.add(unit);</span>
+<span class="fc" id="L75">        Collections.sort(this.tickUnits);</span>
+<span class="fc" id="L76">    }</span>
+
+    /**
+     * Returns the number of tick units in this collection.
+     * &lt;P&gt;
+     * This method is required for the XML writer.
+     *
+     * @return The number of units in this collection.
+     */
+    public int size() {
+<span class="nc" id="L86">        return this.tickUnits.size();</span>
+    }
+
+    /**
+     * Returns the tickunit on the given position.
+     * &lt;P&gt;
+     * This method is required for the XML writer.
+     *
+     * @param pos the position in the list.
+     *
+     * @return The tickunit.
+     */
+    public TickUnit get(int pos) {
+<span class="nc" id="L99">        return (TickUnit) this.tickUnits.get(pos);</span>
+    }
+
+    /**
+     * Returns a tick unit that is larger than the supplied unit.
+     *
+     * @param unit   the unit.
+     *
+     * @return A tick unit that is larger than the supplied unit.
+     */
+    @Override
+    public TickUnit getLargerTickUnit(TickUnit unit) {
+<span class="nc" id="L111">        int index = Collections.binarySearch(this.tickUnits, unit);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (index &gt;= 0) {</span>
+<span class="nc" id="L113">            index = index + 1;</span>
+        }
+        else {
+<span class="nc" id="L116">            index = -index;</span>
+        }
+
+<span class="nc" id="L119">        return (TickUnit) this.tickUnits.get(Math.min(index,</span>
+<span class="nc" id="L120">                this.tickUnits.size() - 1));</span>
+    }
+
+    /**
+     * Returns the tick unit in the collection that is greater than or equal
+     * to (in size) the specified unit.
+     *
+     * @param unit  the unit.
+     *
+     * @return A unit from the collection.
+     */
+    @Override
+    public TickUnit getCeilingTickUnit(TickUnit unit) {
+<span class="fc" id="L133">        int index = Collections.binarySearch(this.tickUnits, unit);</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">        if (index &gt;= 0) {</span>
+<span class="fc" id="L135">            return (TickUnit) this.tickUnits.get(index);</span>
+        }
+        else {
+<span class="fc" id="L138">            index = -(index + 1);</span>
+<span class="fc" id="L139">            return (TickUnit) this.tickUnits.get(Math.min(index,</span>
+<span class="fc" id="L140">                    this.tickUnits.size() - 1));</span>
+        }
+    }
+
+    /**
+     * Returns the tick unit in the collection that is greater than or equal
+     * to the specified size.
+     *
+     * @param size  the size.
+     *
+     * @return A unit from the collection.
+     */
+    @Override
+    public TickUnit getCeilingTickUnit(double size) {
+<span class="fc" id="L154">        return getCeilingTickUnit(new NumberTickUnit(size,</span>
+<span class="fc" id="L155">                NumberFormat.getInstance()));</span>
+    }
+
+    /**
+     * Returns a clone of the collection.
+     *
+     * @return A clone.
+     *
+     * @throws CloneNotSupportedException if an item in the collection does not
+     *         support cloning.
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+<span class="fc" id="L168">        TickUnits clone = (TickUnits) super.clone();</span>
+<span class="fc" id="L169">        clone.tickUnits = new java.util.ArrayList(this.tickUnits);</span>
+<span class="fc" id="L170">        return clone;</span>
+    }
+
+    /**
+     * Tests an object for equality with this instance.
+     *
+     * @param obj  the object to test ({@code null} permitted).
+     *
+     * @return A boolean.
+     */
+    @Override
+    public boolean equals(Object obj) {
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">        if (obj == this) {</span>
+<span class="nc" id="L183">            return true;</span>
+        }
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">        if (!(obj instanceof TickUnits)) {</span>
+<span class="nc" id="L186">            return false;</span>
+        }
+<span class="fc" id="L188">        TickUnits that = (TickUnits) obj;</span>
+<span class="fc" id="L189">        return that.tickUnits.equals(this.tickUnits);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

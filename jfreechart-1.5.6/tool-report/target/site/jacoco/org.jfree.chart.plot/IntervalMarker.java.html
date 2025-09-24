@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IntervalMarker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart.plot</a> &gt; <span class="el_source">IntervalMarker.java</span></div><h1>IntervalMarker.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * -------------------
+ * IntervalMarker.java
+ * -------------------
+ * (C) Copyright 2002-present, by David Gilbert.
+ *
+ * Original Author:  David Gilbert;
+ * Contributor(s):   Tracy Hiltbrand (equals/hashCode comply with EqualsVerifier);
+ *
+ */
+
+package org.jfree.chart.plot;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Paint;
+import java.awt.Stroke;
+import java.io.Serializable;
+import java.util.Objects;
+
+import org.jfree.chart.event.MarkerChangeEvent;
+import org.jfree.chart.ui.GradientPaintTransformer;
+import org.jfree.chart.ui.LengthAdjustmentType;
+
+/**
+ * Represents an interval to be highlighted in some way.
+ */
+public class IntervalMarker extends Marker implements Cloneable, Serializable {
+
+    /** For serialization. */
+    private static final long serialVersionUID = -1762344775267627916L;
+
+    /** The start value. */
+    private double startValue;
+
+    /** The end value. */
+    private double endValue;
+
+    /** The gradient paint transformer (optional). */
+    private GradientPaintTransformer gradientPaintTransformer;
+
+    /**
+     * Constructs an interval marker.
+     *
+     * @param start  the start of the interval.
+     * @param end  the end of the interval.
+     */
+    public IntervalMarker(double start, double end) {
+<span class="fc" id="L74">        this(start, end, Color.GRAY, new BasicStroke(0.5f), Color.GRAY,</span>
+                new BasicStroke(0.5f), 0.8f);
+<span class="fc" id="L76">    }</span>
+
+    /**
+     * Creates a new interval marker with the specified range and fill paint.
+     * The outline paint and stroke default to {@code null}.
+     *
+     * @param start  the lower bound of the interval.
+     * @param end  the upper bound of the interval.
+     * @param paint  the fill paint ({@code null} not permitted).
+     */
+    public IntervalMarker(double start, double end, Paint paint) {
+<span class="nc" id="L87">        this(start, end, paint, new BasicStroke(0.5f), null, null, 0.8f);</span>
+<span class="nc" id="L88">    }</span>
+
+    /**
+     * Constructs an interval marker.
+     *
+     * @param start  the start of the interval.
+     * @param end  the end of the interval.
+     * @param paint  the paint ({@code null} not permitted).
+     * @param stroke  the stroke ({@code null} not permitted).
+     * @param outlinePaint  the outline paint.
+     * @param outlineStroke  the outline stroke.
+     * @param alpha  the alpha transparency.
+     */
+    public IntervalMarker(double start, double end,
+                          Paint paint, Stroke stroke,
+                          Paint outlinePaint, Stroke outlineStroke,
+                          float alpha) {
+
+<span class="fc" id="L106">        super(paint, stroke, outlinePaint, outlineStroke, alpha);</span>
+<span class="fc" id="L107">        this.startValue = start;</span>
+<span class="fc" id="L108">        this.endValue = end;</span>
+<span class="fc" id="L109">        this.gradientPaintTransformer = null;</span>
+<span class="fc" id="L110">        setLabelOffsetType(LengthAdjustmentType.CONTRACT);</span>
+
+<span class="fc" id="L112">    }</span>
+
+    /**
+     * Returns the start value for the interval.
+     *
+     * @return The start value.
+     */
+    public double getStartValue() {
+<span class="fc" id="L120">        return this.startValue;</span>
+    }
+
+    /**
+     * Sets the start value for the marker and sends a
+     * {@link MarkerChangeEvent} to all registered listeners.
+     *
+     * @param value  the value.
+     */
+    public void setStartValue(double value) {
+<span class="fc" id="L130">        this.startValue = value;</span>
+<span class="fc" id="L131">        notifyListeners(new MarkerChangeEvent(this));</span>
+<span class="fc" id="L132">    }</span>
+
+    /**
+     * Returns the end value for the interval.
+     *
+     * @return The end value.
+     */
+    public double getEndValue() {
+<span class="fc" id="L140">        return this.endValue;</span>
+    }
+
+    /**
+     * Sets the end value for the marker and sends a
+     * {@link MarkerChangeEvent} to all registered listeners.
+     *
+     * @param value  the value.
+     */
+    public void setEndValue(double value) {
+<span class="fc" id="L150">        this.endValue = value;</span>
+<span class="fc" id="L151">        notifyListeners(new MarkerChangeEvent(this));</span>
+<span class="fc" id="L152">    }</span>
+
+    /**
+     * Returns the gradient paint transformer.
+     *
+     * @return The gradient paint transformer (possibly {@code null}).
+     */
+    public GradientPaintTransformer getGradientPaintTransformer() {
+<span class="nc" id="L160">        return this.gradientPaintTransformer;</span>
+    }
+
+    /**
+     * Sets the gradient paint transformer and sends a
+     * {@link MarkerChangeEvent} to all registered listeners.
+     *
+     * @param transformer  the transformer ({@code null} permitted).
+     */
+    public void setGradientPaintTransformer(
+            GradientPaintTransformer transformer) {
+<span class="fc" id="L171">        this.gradientPaintTransformer = transformer;</span>
+<span class="fc" id="L172">        notifyListeners(new MarkerChangeEvent(this));</span>
+<span class="fc" id="L173">    }</span>
+
+    /**
+     * Tests the marker for equality with an arbitrary object.
+     *
+     * @param obj  the object ({@code null} permitted).
+     *
+     * @return A boolean.
+     */
+    @Override
+    public boolean equals(Object obj) {
+<span class="fc bfc" id="L184" title="All 2 branches covered.">        if (obj == this) {</span>
+<span class="fc" id="L185">            return true;</span>
+        }
+<span class="fc bfc" id="L187" title="All 2 branches covered.">        if (!(obj instanceof IntervalMarker)) {</span>
+<span class="fc" id="L188">            return false;</span>
+        }
+<span class="fc" id="L190">        IntervalMarker that = (IntervalMarker) obj;</span>
+<span class="pc bpc" id="L191" title="1 of 2 branches missed.">        if (!that.canEqual(this)) {</span>
+<span class="nc" id="L192">            return false;</span>
+        }
+<span class="fc" id="L194">        if (Double.doubleToLongBits(this.startValue) != </span>
+<span class="fc bfc" id="L195" title="All 2 branches covered.">            Double.doubleToLongBits(that.startValue)) {</span>
+<span class="fc" id="L196">            return false;</span>
+        }
+<span class="fc" id="L198">        if (Double.doubleToLongBits(this.endValue) != </span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">            Double.doubleToLongBits(that.endValue)) {</span>
+<span class="fc" id="L200">            return false;</span>
+        }
+<span class="fc bfc" id="L202" title="All 2 branches covered.">        if (!Objects.equals(this.gradientPaintTransformer,</span>
+                that.gradientPaintTransformer)) {
+<span class="fc" id="L204">            return false;</span>
+        }
+<span class="fc" id="L206">        return super.equals(obj);</span>
+    }
+
+    /**
+     * Ensures symmetry between super/subclass implementations of equals. For
+     * more detail, see http://jqno.nl/equalsverifier/manual/inheritance.
+     *
+     * @param other Object
+     * 
+     * @return true ONLY if the parameter is THIS class type
+     */
+    @Override
+    public boolean canEqual(Object other) {
+        // Solves Problem: equals not symmetric
+<span class="fc" id="L220">        return (other instanceof IntervalMarker);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L225">        int hash = super.hashCode(); // equals calls superclass, hashCode must also</span>
+<span class="fc" id="L226">        hash = 47 * hash +</span>
+<span class="fc" id="L227">               (int) (Double.doubleToLongBits(this.startValue) ^</span>
+<span class="fc" id="L228">                      (Double.doubleToLongBits(this.startValue) &gt;&gt;&gt; 32));</span>
+<span class="fc" id="L229">        hash = 47 * hash +</span>
+<span class="fc" id="L230">               (int) (Double.doubleToLongBits(this.endValue) ^</span>
+<span class="fc" id="L231">                      (Double.doubleToLongBits(this.endValue) &gt;&gt;&gt; 32));</span>
+<span class="fc" id="L232">        hash = 47 * hash + Objects.hashCode(this.gradientPaintTransformer);</span>
+<span class="fc" id="L233">        return hash;</span>
+    }
+
+    /**
+     * Returns a clone of the marker.
+     *
+     * @return A clone.
+     *
+     * @throws CloneNotSupportedException Not thrown by this class, but the
+     *         exception is declared for the use of subclasses.
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+<span class="fc" id="L246">        return super.clone();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

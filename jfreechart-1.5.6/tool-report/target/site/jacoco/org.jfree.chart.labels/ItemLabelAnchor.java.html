@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ItemLabelAnchor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JFreeChart</a> &gt; <a href="index.source.html" class="el_package">org.jfree.chart.labels</a> &gt; <span class="el_source">ItemLabelAnchor.java</span></div><h1>ItemLabelAnchor.java</h1><pre class="source lang-java linenums">/* ======================================================
+ * JFreeChart : a chart library for the Java(tm) platform
+ * ======================================================
+ *
+ * (C) Copyright 2000-present, by David Gilbert and Contributors.
+ *
+ * Project Info:  https://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ * USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * --------------------
+ * ItemLabelAnchor.java
+ * --------------------
+ * (C) Copyright 2003-present, by David Gilbert.
+ *
+ * Original Author:  David Gilbert;
+ * Contributor(s):   -;
+ *
+ */
+
+package org.jfree.chart.labels;
+
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+
+/**
+ * An enumeration of the positions that a value label can take, relative to an
+ * item in a {@link org.jfree.chart.plot.CategoryPlot}.
+ */
+public final class ItemLabelAnchor implements Serializable {
+
+    /** For serialization. */
+    private static final long serialVersionUID = -1233101616128695658L;
+
+    /** CENTER. */
+<span class="fc" id="L52">    public static final ItemLabelAnchor CENTER</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.CENTER&quot;);
+
+    /** INSIDE1. */
+<span class="fc" id="L56">    public static final ItemLabelAnchor INSIDE1</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.INSIDE1&quot;);
+
+    /** INSIDE2. */
+<span class="fc" id="L60">    public static final ItemLabelAnchor INSIDE2</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.INSIDE2&quot;);
+
+    /** INSIDE3. */
+<span class="fc" id="L64">    public static final ItemLabelAnchor INSIDE3</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.INSIDE3&quot;);
+
+    /** INSIDE4. */
+<span class="fc" id="L68">    public static final ItemLabelAnchor INSIDE4</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.INSIDE4&quot;);
+
+    /** INSIDE5. */
+<span class="fc" id="L72">    public static final ItemLabelAnchor INSIDE5</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.INSIDE5&quot;);
+
+    /** INSIDE6. */
+<span class="fc" id="L76">    public static final ItemLabelAnchor INSIDE6</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.INSIDE6&quot;);
+
+    /** INSIDE7. */
+<span class="fc" id="L80">    public static final ItemLabelAnchor INSIDE7</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.INSIDE7&quot;);
+
+    /** INSIDE8. */
+<span class="fc" id="L84">    public static final ItemLabelAnchor INSIDE8</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.INSIDE8&quot;);
+
+    /** INSIDE9. */
+<span class="fc" id="L88">    public static final ItemLabelAnchor INSIDE9</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.INSIDE9&quot;);
+
+    /** INSIDE10. */
+<span class="fc" id="L92">    public static final ItemLabelAnchor INSIDE10</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.INSIDE10&quot;);
+
+    /** INSIDE11. */
+<span class="fc" id="L96">    public static final ItemLabelAnchor INSIDE11</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.INSIDE11&quot;);
+
+    /** INSIDE12. */
+<span class="fc" id="L100">    public static final ItemLabelAnchor INSIDE12</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.INSIDE12&quot;);
+
+    /** OUTSIDE1. */
+<span class="fc" id="L104">    public static final ItemLabelAnchor OUTSIDE1</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.OUTSIDE1&quot;);
+
+    /** OUTSIDE2. */
+<span class="fc" id="L108">    public static final ItemLabelAnchor OUTSIDE2</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.OUTSIDE2&quot;);
+
+    /** OUTSIDE3. */
+<span class="fc" id="L112">    public static final ItemLabelAnchor OUTSIDE3</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.OUTSIDE3&quot;);
+
+    /** OUTSIDE4. */
+<span class="fc" id="L116">    public static final ItemLabelAnchor OUTSIDE4</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.OUTSIDE4&quot;);
+
+    /** OUTSIDE5. */
+<span class="fc" id="L120">    public static final ItemLabelAnchor OUTSIDE5</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.OUTSIDE5&quot;);
+
+    /** OUTSIDE6. */
+<span class="fc" id="L124">    public static final ItemLabelAnchor OUTSIDE6</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.OUTSIDE6&quot;);
+
+    /** OUTSIDE7. */
+<span class="fc" id="L128">    public static final ItemLabelAnchor OUTSIDE7</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.OUTSIDE7&quot;);
+
+    /** OUTSIDE8. */
+<span class="fc" id="L132">    public static final ItemLabelAnchor OUTSIDE8</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.OUTSIDE8&quot;);
+
+    /** OUTSIDE9. */
+<span class="fc" id="L136">    public static final ItemLabelAnchor OUTSIDE9</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.OUTSIDE9&quot;);
+
+    /** OUTSIDE10. */
+<span class="fc" id="L140">    public static final ItemLabelAnchor OUTSIDE10</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.OUTSIDE10&quot;);
+
+    /** OUTSIDE11. */
+<span class="fc" id="L144">    public static final ItemLabelAnchor OUTSIDE11</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.OUTSIDE11&quot;);
+
+    /** OUTSIDE12. */
+<span class="fc" id="L148">    public static final ItemLabelAnchor OUTSIDE12</span>
+        = new ItemLabelAnchor(&quot;ItemLabelAnchor.OUTSIDE12&quot;);
+
+    /** The name. */
+    private String name;
+
+    /**
+     * Private constructor.
+     *
+     * @param name  the name.
+     */
+<span class="fc" id="L159">    private ItemLabelAnchor(String name) {</span>
+<span class="fc" id="L160">        this.name = name;</span>
+<span class="fc" id="L161">    }</span>
+
+    /**
+     * Returns {@code true} if this anchor point is inside an area.
+     *
+     * @return {@code true} if this anchor point is inside an area,
+     *         {@code false} otherwise.
+     */
+    public boolean isInternal() {
+<span class="nc bnc" id="L170" title="All 26 branches missed.">        return this == ItemLabelAnchor.CENTER</span>
+               || this == ItemLabelAnchor.INSIDE1
+               || this == ItemLabelAnchor.INSIDE2
+               || this == ItemLabelAnchor.INSIDE3
+               || this == ItemLabelAnchor.INSIDE4
+               || this == ItemLabelAnchor.INSIDE5
+               || this == ItemLabelAnchor.INSIDE6
+               || this == ItemLabelAnchor.INSIDE7
+               || this == ItemLabelAnchor.INSIDE8
+               || this == ItemLabelAnchor.INSIDE9
+               || this == ItemLabelAnchor.INSIDE10
+               || this == ItemLabelAnchor.INSIDE11
+               || this == ItemLabelAnchor.INSIDE12;
+    }
+
+    /**
+     * Returns a string representing the object.
+     *
+     * @return The string.
+     */
+    @Override
+    public String toString() {
+<span class="fc" id="L192">        return this.name;</span>
+    }
+
+    /**
+     * Returns {@code true} if this object is equal to the specified
+     * object, and {@code false} otherwise.
+     *
+     * @param obj  the other object.
+     *
+     * @return A boolean.
+     */
+    @Override
+    public boolean equals(Object obj) {
+<span class="fc bfc" id="L205" title="All 2 branches covered.">        if (this == obj) {</span>
+<span class="fc" id="L206">            return true;</span>
+        }
+<span class="fc bfc" id="L208" title="All 2 branches covered.">        if (!(obj instanceof ItemLabelAnchor)) {</span>
+<span class="fc" id="L209">            return false;</span>
+        }
+<span class="fc" id="L211">        ItemLabelAnchor that = (ItemLabelAnchor) obj;</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">        if (!this.name.equals(that.toString())) {</span>
+<span class="fc" id="L213">            return false;</span>
+        }
+<span class="fc" id="L215">        return true;</span>
+    }
+
+    /**
+     * Ensures that serialization returns the unique instances.
+     *
+     * @return The object.
+     *
+     * @throws ObjectStreamException if there is a problem.
+     */
+    private Object readResolve() throws ObjectStreamException {
+<span class="fc" id="L226">        ItemLabelAnchor result = null;</span>
+<span class="fc bfc" id="L227" title="All 2 branches covered.">        if (this.equals(ItemLabelAnchor.CENTER)) {</span>
+<span class="fc" id="L228">            result = ItemLabelAnchor.CENTER;</span>
+        }
+<span class="fc bfc" id="L230" title="All 2 branches covered.">        else if (this.equals(ItemLabelAnchor.INSIDE1)) {</span>
+<span class="fc" id="L231">            result = ItemLabelAnchor.INSIDE1;</span>
+        }
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.INSIDE2)) {</span>
+<span class="nc" id="L234">            result = ItemLabelAnchor.INSIDE2;</span>
+        }
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.INSIDE3)) {</span>
+<span class="nc" id="L237">            result = ItemLabelAnchor.INSIDE3;</span>
+        }
+<span class="pc bpc" id="L239" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.INSIDE4)) {</span>
+<span class="nc" id="L240">            result = ItemLabelAnchor.INSIDE4;</span>
+        }
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.INSIDE5)) {</span>
+<span class="nc" id="L243">            result = ItemLabelAnchor.INSIDE5;</span>
+        }
+<span class="pc bpc" id="L245" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.INSIDE6)) {</span>
+<span class="nc" id="L246">            result = ItemLabelAnchor.INSIDE6;</span>
+        }
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.INSIDE7)) {</span>
+<span class="nc" id="L249">            result = ItemLabelAnchor.INSIDE7;</span>
+        }
+<span class="pc bpc" id="L251" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.INSIDE8)) {</span>
+<span class="nc" id="L252">            result = ItemLabelAnchor.INSIDE8;</span>
+        }
+<span class="pc bpc" id="L254" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.INSIDE9)) {</span>
+<span class="nc" id="L255">            result = ItemLabelAnchor.INSIDE9;</span>
+        }
+<span class="pc bpc" id="L257" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.INSIDE10)) {</span>
+<span class="nc" id="L258">            result = ItemLabelAnchor.INSIDE10;</span>
+        }
+<span class="pc bpc" id="L260" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.INSIDE11)) {</span>
+<span class="nc" id="L261">            result = ItemLabelAnchor.INSIDE11;</span>
+        }
+<span class="pc bpc" id="L263" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.INSIDE12)) {</span>
+<span class="nc" id="L264">            result = ItemLabelAnchor.INSIDE12;</span>
+        }
+<span class="pc bpc" id="L266" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.OUTSIDE1)) {</span>
+<span class="nc" id="L267">            result = ItemLabelAnchor.OUTSIDE1;</span>
+        }
+<span class="pc bpc" id="L269" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.OUTSIDE2)) {</span>
+<span class="nc" id="L270">            result = ItemLabelAnchor.OUTSIDE2;</span>
+        }
+<span class="pc bpc" id="L272" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.OUTSIDE3)) {</span>
+<span class="nc" id="L273">            result = ItemLabelAnchor.OUTSIDE3;</span>
+        }
+<span class="pc bpc" id="L275" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.OUTSIDE4)) {</span>
+<span class="nc" id="L276">            result = ItemLabelAnchor.OUTSIDE4;</span>
+        }
+<span class="pc bpc" id="L278" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.OUTSIDE5)) {</span>
+<span class="nc" id="L279">            result = ItemLabelAnchor.OUTSIDE5;</span>
+        }
+<span class="fc bfc" id="L281" title="All 2 branches covered.">        else if (this.equals(ItemLabelAnchor.OUTSIDE6)) {</span>
+<span class="fc" id="L282">            result = ItemLabelAnchor.OUTSIDE6;</span>
+        }
+<span class="pc bpc" id="L284" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.OUTSIDE7)) {</span>
+<span class="nc" id="L285">            result = ItemLabelAnchor.OUTSIDE7;</span>
+        }
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.OUTSIDE8)) {</span>
+<span class="nc" id="L288">            result = ItemLabelAnchor.OUTSIDE8;</span>
+        }
+<span class="pc bpc" id="L290" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.OUTSIDE9)) {</span>
+<span class="nc" id="L291">            result = ItemLabelAnchor.OUTSIDE9;</span>
+        }
+<span class="pc bpc" id="L293" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.OUTSIDE10)) {</span>
+<span class="nc" id="L294">            result = ItemLabelAnchor.OUTSIDE10;</span>
+        }
+<span class="pc bpc" id="L296" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.OUTSIDE11)) {</span>
+<span class="nc" id="L297">            result = ItemLabelAnchor.OUTSIDE11;</span>
+        }
+<span class="pc bpc" id="L299" title="1 of 2 branches missed.">        else if (this.equals(ItemLabelAnchor.OUTSIDE12)) {</span>
+<span class="fc" id="L300">            result = ItemLabelAnchor.OUTSIDE12;</span>
+        }
+<span class="fc" id="L302">        return result;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
