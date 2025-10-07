@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Search, Loader2, UserPlus } from 'lucide-react';
-import Header from '@/components/header';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -66,8 +65,7 @@ export default function FriendsPage() {
 
   return (
     <>
-      <Header />
-      <main className="container mx-auto max-w-2xl py-8 pt-24 px-4">
+      <main className="container mx-auto max-w-2xl py-8 px-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-headline font-bold text-primary">Find Friends</h1>
           <p className="mt-2 text-lg text-muted-foreground">Connect with others by searching their username.</p>

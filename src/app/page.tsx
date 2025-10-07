@@ -16,7 +16,6 @@ import AudioRecorder from '@/components/audio-recorder';
 import PhotoUploader from '@/components/photo-uploader';
 import BackgroundSelector from '@/components/background-selector';
 import SentConfirmationDialog from '@/components/sent-confirmation-dialog';
-import Header from '@/components/header';
 
 export default function Home() {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -105,8 +104,7 @@ export default function Home() {
 
   return (
     <>
-      <Header />
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8 pt-24">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-4 sm:p-6 lg:p-8">
         <main className="w-full max-w-2xl mx-auto flex flex-col gap-8">
           <div className="text-center">
             <h1 className="font-headline text-4xl font-bold tracking-tight text-primary">VoiceMail</h1>
