@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Loader2, UserPlus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
+import { auth } from '@/lib/firebase';
+import type { User as FirebaseUser } from 'firebase/auth';
 
 // Mock user data type
 type User = {
@@ -17,7 +19,7 @@ type User = {
 };
 
 // Mock search function
-const searchUsers = async (query: string): Promise<User[]> => {
+const searchUsers = async (query: string, currentUsername: string | null): Promise<User[]> => {
   console.log(`Searching for: ${query}`);
   // In a real app, you'd fetch this from your database
   const mockUsers: User[] = [
@@ -37,22 +39,39 @@ const searchUsers = async (query: string): Promise<User[]> => {
   // Simulate searching by friend link (e.g., "alex.link")
   const searchUsername = query.replace('.link', '').toLowerCase();
 
-  return mockUsers.filter(user => user.username.toLowerCase().includes(searchUsername));
+  return mockUsers.filter(user => 
+    user.username.toLowerCase().includes(searchUsername) &&
+    user.username.toLowerCase() !== currentUsername?.toLowerCase() // Exclude current user
+  );
 };
 
 export default function FriendsPage() {
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [addedFriends, setAddedFriends] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const getUsername = (user: FirebaseUser | null) => {
+    if (!user || !user.email) return null;
+    return user.email.split('@')[0];
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
     setIsLoading(true);
-    const results = await searchUsers(searchQuery);
+    const currentUsername = getUsername(currentUser);
+    const results = await searchUsers(searchQuery, currentUsername);
     setSearchResults(results);
     setIsLoading(false);
   };
