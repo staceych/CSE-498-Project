@@ -32,8 +32,11 @@ const searchUsers = async (query: string): Promise<User[]> => {
   if (!query) {
     return [];
   }
+  
+  // Simulate searching by friend link (e.g., "alex.link")
+  const searchUsername = query.replace('.link', '').toLowerCase();
 
-  return mockUsers.filter(user => user.username.toLowerCase().includes(query.toLowerCase()));
+  return mockUsers.filter(user => user.username.toLowerCase().includes(searchUsername));
 };
 
 export default function FriendsPage() {
@@ -68,13 +71,13 @@ export default function FriendsPage() {
       <main className="container mx-auto max-w-2xl py-8 px-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-headline font-bold text-primary">Find Friends</h1>
-          <p className="mt-2 text-lg text-muted-foreground">Connect with others by searching their username.</p>
+          <p className="mt-2 text-lg text-muted-foreground">Connect with others using their unique friend link.</p>
         </div>
 
         <form onSubmit={handleSearch} className="flex gap-2 mb-8">
           <Input
             type="search"
-            placeholder="Search by username..."
+            placeholder="Search by friend link..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-grow"
