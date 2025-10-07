@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -37,6 +38,8 @@ const searchUsers = async (friendLink: string, currentUserId: string): Promise<U
     return users;
   } catch (error) {
     console.error("Error searching users: ", error);
+    // This error often happens if the Firestore index is missing.
+    // Check the browser console for a link to create it.
     return [];
   }
 };
@@ -87,7 +90,7 @@ export default function FriendsPage() {
         friends: arrayUnion(friend.id)
       });
 
-      // Optional: Add current user to friend's friend list (for a two-way friendship)
+      // Add current user to friend's friend list (for a two-way friendship)
       const friendRef = doc(db, 'users', friend.id);
       await updateDoc(friendRef, {
         friends: arrayUnion(currentUser.uid)

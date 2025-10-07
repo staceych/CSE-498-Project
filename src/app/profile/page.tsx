@@ -35,6 +35,10 @@ export default function ProfilePage() {
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
           setUserProfile(userDoc.data() as UserProfile);
+        } else {
+           // If no profile, maybe redirect or show an error
+          console.log("No such user profile!");
+          router.push('/login'); // or a page to create a profile
         }
       } else {
         router.push('/login');
