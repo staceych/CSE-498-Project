@@ -63,57 +63,58 @@ export default function ProfilePage() {
   const username = getUsername(user?.email);
 
   return (
-    <main className="container mx-auto max-w-2xl py-8 px-4">
-        <div className="flex flex-col items-center text-center mb-8">
+    <main className="container mx-auto max-w-4xl py-8 px-4">
+      <div className="grid md:grid-cols-3 gap-8 mb-8">
+        <div className="md:col-span-1 flex flex-col items-center text-center">
             <UserCircle2 className="w-24 h-24 text-gray-300" strokeWidth={1} />
             <h1 className="text-3xl font-bold mt-2">{username}</h1>
             <p className="text-muted-foreground">{username}.link</p>
         </div>
         
-        <div className="bg-accent/50 rounded-lg p-6 relative mb-8">
+        <div className="md:col-span-2 bg-accent/50 rounded-lg p-6 relative">
             <Button variant="outline" size="sm" className="absolute top-4 right-4 bg-white">Edit</Button>
             <div className="space-y-6">
                 <div className="flex justify-between items-center border-b pb-4">
-                <span className="font-medium">Username</span>
-                <span className="text-muted-foreground">{username}</span>
+                  <span className="font-medium">Username</span>
+                  <span className="text-muted-foreground">{username}</span>
                 </div>
                 <div className="flex justify-between items-center border-b pb-4">
-                <span className="font-medium">Password</span>
-                <span className="text-muted-foreground">**********</span>
+                  <span className="font-medium">Password</span>
+                  <span className="text-muted-foreground">**********</span>
                 </div>
                 <div className="flex justify-between items-center">
-                <span className="font-medium">Transcripts On</span>
-                <Switch defaultChecked />
+                  <span className="font-medium">Transcripts On</span>
+                  <Switch defaultChecked />
                 </div>
+                 <Button variant="outline" className="w-full mt-4" onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                </Button>
             </div>
         </div>
+      </div>
 
-        <Card>
-            <CardHeader>
-                <CardTitle>Friends</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="flex items-center justify-between">
-                    <div className="flex -space-x-4">
-                    {[...Array(5)].map((_, i) => (
-                        <Avatar key={i} className="border-2 border-background">
-                        <AvatarFallback className="bg-gray-200">
-                            <User className="h-5 w-5 text-gray-400" />
-                        </AvatarFallback>
-                        </Avatar>
-                    ))}
-                    </div>
-                    <Button variant="ghost" size="icon">
-                        <ChevronRight className="h-6 w-6 text-gray-400" />
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
-
-        <Button variant="outline" className="w-full mt-8" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-        </Button>
+      <Card>
+          <CardHeader>
+              <CardTitle>Friends</CardTitle>
+          </CardHeader>
+          <CardContent>
+              <div className="flex items-center justify-between">
+                  <div className="flex -space-x-4">
+                  {[...Array(5)].map((_, i) => (
+                      <Avatar key={i} className="border-2 border-background">
+                      <AvatarFallback className="bg-gray-200">
+                          <User className="h-5 w-5 text-gray-400" />
+                      </AvatarFallback>
+                      </Avatar>
+                  ))}
+                  </div>
+                  <Button variant="ghost" size="icon">
+                      <ChevronRight className="h-6 w-6 text-gray-400" />
+                  </Button>
+              </div>
+          </CardContent>
+      </Card>
     </main>
   );
 }
