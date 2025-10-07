@@ -25,6 +25,7 @@ const searchUsers = async (query: string): Promise<User[]> => {
     { id: '2', username: 'casey', avatar: 'https://i.pravatar.cc/150?u=casey', initials: 'C' },
     { id: '3', username: 'jordan', avatar: 'https://i.pravatar.cc/150?u=jordan', initials: 'J' },
     { id: '4', username: 'sam', avatar: 'https://i.pravatar.cc/150?u=sam', initials: 'S' },
+    { id: '5', username: 'hello2', avatar: 'https://i.pravatar.cc/150?u=hello2', initials: 'H' },
   ];
 
   await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
