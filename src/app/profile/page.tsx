@@ -66,7 +66,7 @@ export default function ProfilePage() {
     <main className="container mx-auto max-w-4xl py-8 px-4">
       <div className="grid md:grid-cols-3 gap-8 mb-8">
         <div className="md:col-span-1 flex flex-col items-center text-center">
-            <UserCircle2 className="w-24 h-24 text-gray-300" strokeWidth={1} />
+            <UserCircle2 className="w-32 h-32 text-gray-300" strokeWidth={1} />
             <h1 className="text-3xl font-bold mt-2">{username}</h1>
         </div>
         
