@@ -3,26 +3,39 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, User, Bell, Palette, ChevronRight, Loader2, UserCircle2 } from 'lucide-react';
+import { LogOut, User, ChevronRight, Loader2, UserCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc } from "firebase/firestore";
 import type { User as FirebaseUser } from 'firebase/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+type UserProfile = {
+  username: string;
+  friendLink: string;
+  friends: string[];
+};
+
 export default function ProfilePage() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
+        // Fetch user profile from Firestore
+        const userDocRef = doc(db, "users", currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUserProfile(userDoc.data() as UserProfile);
+        }
       } else {
         router.push('/login');
       }
@@ -47,12 +60,7 @@ export default function ProfilePage() {
       });
   };
 
-  const getUsername = (email: string | null | undefined) => {
-    if (!email) return 'User';
-    return email.split('@')[0];
-  };
-
-  if (isLoading) {
+  if (isLoading || !userProfile) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -60,7 +68,7 @@ export default function ProfilePage() {
     );
   }
 
-  const username = getUsername(user?.email);
+  const { username, friendLink, friends } = userProfile;
 
   return (
     <main className="container mx-auto max-w-4xl py-8 px-4">
@@ -83,7 +91,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex justify-between items-center border-b pb-4">
                   <span className="font-medium">Friend Link</span>
-                  <span className="text-muted-foreground">{username}.link</span>
+                  <span className="text-muted-foreground">{friendLink}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Transcripts On</span>
@@ -99,18 +107,23 @@ export default function ProfilePage() {
 
       <Card>
           <CardHeader>
-              <CardTitle>Friends</CardTitle>
+              <CardTitle>Friends ({friends.length})</CardTitle>
           </CardHeader>
           <CardContent>
               <div className="flex items-center justify-between">
                   <div className="flex -space-x-4">
-                  {[...Array(5)].map((_, i) => (
+                  {friends.slice(0, 5).map((friendId, i) => (
                       <Avatar key={i} className="border-2 border-background">
                       <AvatarFallback className="bg-gray-200">
                           <User className="h-5 w-5 text-gray-400" />
                       </AvatarFallback>
                       </Avatar>
                   ))}
+                  {friends.length > 5 && (
+                    <Avatar className="border-2 border-background">
+                        <AvatarFallback>+{friends.length - 5}</AvatarFallback>
+                    </Avatar>
+                  )}
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => router.push('/friends')}>
                       <ChevronRight className="h-6 w-6 text-gray-400" />

@@ -1,90 +1,115 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Loader2, UserPlus } from 'lucide-react';
+import { Search, Loader2, UserPlus, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import type { User as FirebaseUser } from 'firebase/auth';
 
-// Mock user data type
-type User = {
-  id: string;
+type UserProfile = {
+  id: string; // This will be the document ID from Firestore (same as Firebase Auth UID)
   username: string;
-  avatar: string;
-  initials: string;
+  avatar?: string;
 };
 
-// Mock search function
-const searchUsers = async (query: string, currentUsername: string | null): Promise<User[]> => {
-  console.log(`Searching for: ${query}`);
-  // In a real app, you'd fetch this from your database
-  const mockUsers: User[] = [
-    { id: '1', username: 'alex', avatar: 'https://i.pravatar.cc/150?u=alex', initials: 'A' },
-    { id: '2', username: 'casey', avatar: 'https://i.pravatar.cc/150?u=casey', initials: 'C' },
-    { id: '3', username: 'jordan', avatar: 'https://i.pravatar.cc/150?u=jordan', initials: 'J' },
-    { id: '4', username: 'sam', avatar: 'https://i.pravatar.cc/150?u=sam', initials: 'S' },
-    { id: '5', username: 'hello2', avatar: 'https://i.pravatar.cc/150?u=hello2', initials: 'H' },
-  ];
+// Search for users in Firestore
+const searchUsers = async (friendLink: string, currentUserId: string): Promise<UserProfile[]> => {
+  if (!friendLink.trim()) return [];
 
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-
-  if (!query) {
+  const usersRef = collection(db, 'users');
+  // Query for the user with the matching friendLink
+  const q = query(usersRef, where('friendLink', '==', friendLink));
+  
+  try {
+    const querySnapshot = await getDocs(q);
+    const users: UserProfile[] = [];
+    querySnapshot.forEach((doc) => {
+      // Exclude the current user from the results
+      if (doc.id !== currentUserId) {
+        users.push({ id: doc.id, ...doc.data() } as UserProfile);
+      }
+    });
+    return users;
+  } catch (error) {
+    console.error("Error searching users: ", error);
     return [];
   }
-  
-  // Simulate searching by friend link (e.g., "alex.link")
-  const searchUsername = query.replace('.link', '').toLowerCase();
-
-  return mockUsers.filter(user => 
-    user.username.toLowerCase().includes(searchUsername) &&
-    user.username.toLowerCase() !== currentUsername?.toLowerCase() // Exclude current user
-  );
 };
 
 export default function FriendsPage() {
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [userFriends, setUserFriends] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [addedFriends, setAddedFriends] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setCurrentUser(user);
+      if (user) {
+        // Fetch current user's friends list
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUserFriends(userDoc.data().friends || []);
+        }
+      }
     });
     return () => unsubscribe();
   }, []);
 
-  const getUsername = (user: FirebaseUser | null) => {
-    if (!user || !user.email) return null;
-    return user.email.split('@')[0];
-  };
-
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim() || !currentUser) return;
 
     setIsLoading(true);
-    const currentUsername = getUsername(currentUser);
-    const results = await searchUsers(searchQuery, currentUsername);
+    const results = await searchUsers(searchQuery, currentUser.uid);
     setSearchResults(results);
     setIsLoading(false);
   };
 
-  const handleAddFriend = (user: User) => {
-    // In a real app, this would send a friend request
-    console.log(`Adding friend: ${user.username}`);
-    setAddedFriends(prev => new Set(prev).add(user.id));
-    toast({
-      title: 'Friend Added!',
-      description: `You are now friends with ${user.username}.`,
-    });
+  const handleAddFriend = async (friend: UserProfile) => {
+    if (!currentUser) {
+      toast({ title: "Not logged in", description: "You must be logged in to add friends.", variant: 'destructive'});
+      return;
+    }
+
+    try {
+      // Add friend to current user's friend list
+      const currentUserRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(currentUserRef, {
+        friends: arrayUnion(friend.id)
+      });
+
+      // Optional: Add current user to friend's friend list (for a two-way friendship)
+      const friendRef = doc(db, 'users', friend.id);
+      await updateDoc(friendRef, {
+        friends: arrayUnion(currentUser.uid)
+      });
+      
+      setUserFriends(prev => [...prev, friend.id]);
+      
+      toast({
+        title: 'Friend Added!',
+        description: `You are now friends with ${friend.username}.`,
+      });
+    } catch (error) {
+      console.error("Error adding friend: ", error);
+      toast({
+        title: 'Error',
+        description: 'Could not add friend. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
+
+  const isFriend = (userId: string) => userFriends.includes(userId);
 
   return (
     <>
@@ -97,7 +122,7 @@ export default function FriendsPage() {
         <form onSubmit={handleSearch} className="flex gap-2 mb-8">
           <Input
             type="search"
-            placeholder="Search by friend link..."
+            placeholder="Search by friend link (e.g., username.link)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-grow"
@@ -125,18 +150,27 @@ export default function FriendsPage() {
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-4">
                   <Avatar>
-                    <AvatarImage src={user.avatar} alt={user.username} />
-                    <AvatarFallback>{user.initials}</AvatarFallback>
+                    {user.avatar && <AvatarImage src={user.avatar} alt={user.username} />}
+                    <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <span className="font-medium">{user.username}</span>
                 </div>
                 <Button
                   size="sm"
                   onClick={() => handleAddFriend(user)}
-                  disabled={addedFriends.has(user.id)}
+                  disabled={isFriend(user.id)}
                 >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  {addedFriends.has(user.id) ? 'Friend' : 'Add Friend'}
+                  {isFriend(user.id) ? (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Friend
+                    </>
+                  ) : (
+                    <>
+                     <UserPlus className="mr-2 h-4 w-4" />
+                     Add Friend
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>

@@ -16,7 +16,8 @@ import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { doc, setDoc } from "firebase/firestore"; 
+import { auth, db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 export default function SignUpPage() {
@@ -27,7 +28,7 @@ export default function SignUpPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       toast({
@@ -39,31 +40,43 @@ export default function SignUpPage() {
     setIsLoading(true);
     // We are using a dummy domain to use Firebase email/password auth with a username
     const email = `${username}@voicemail.app`;
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // Signed up
-        const user = userCredential.user;
-        console.log('Signed up with:', user);
-        router.push('/login');
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error('Sign up error:', errorCode, errorMessage);
-        let userFriendlyMessage = errorMessage;
-        if (errorCode === 'auth/invalid-email') {
-          userFriendlyMessage = 'Please enter a valid username.';
-        } else if (errorCode === 'auth/email-already-in-use') {
-            userFriendlyMessage = 'This username is already taken. Please choose another one.';
-        }
 
-        toast({
-          title: 'Sign-up Failed',
-          description: userFriendlyMessage,
-          variant: 'destructive',
-        });
-        setIsLoading(false);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Signed up
+      const user = userCredential.user;
+      console.log('Signed up with:', user);
+      
+      // Create a user document in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        username: username,
+        friendLink: `${username}.link`,
+        friends: []
       });
+
+      router.push('/login');
+
+    } catch (error: any) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error('Sign up error:', errorCode, errorMessage);
+      let userFriendlyMessage = errorMessage;
+      if (errorCode === 'auth/invalid-email') {
+        userFriendlyMessage = 'Please enter a valid username (no special characters).';
+      } else if (errorCode === 'auth/email-already-in-use') {
+          userFriendlyMessage = 'This username is already taken. Please choose another one.';
+      } else if (errorCode === 'auth/weak-password') {
+          userFriendlyMessage = 'Password should be at least 6 characters.';
+      }
+
+      toast({
+        title: 'Sign-up Failed',
+        description: userFriendlyMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
