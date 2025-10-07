@@ -106,7 +106,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8 pt-20">
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8 pt-24">
         <main className="w-full max-w-2xl mx-auto flex flex-col gap-8">
           <div className="text-center">
             <h1 className="font-headline text-4xl font-bold tracking-tight text-primary">VoiceMail</h1>
