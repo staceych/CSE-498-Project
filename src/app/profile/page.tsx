@@ -68,7 +68,6 @@ export default function ProfilePage() {
         <div className="md:col-span-1 flex flex-col items-center text-center">
             <UserCircle2 className="w-24 h-24 text-gray-300" strokeWidth={1} />
             <h1 className="text-3xl font-bold mt-2">{username}</h1>
-            <p className="text-muted-foreground">{username}.link</p>
         </div>
         
         <div className="md:col-span-2 bg-accent/50 rounded-lg p-6 relative">
@@ -81,6 +80,10 @@ export default function ProfilePage() {
                 <div className="flex justify-between items-center border-b pb-4">
                   <span className="font-medium">Password</span>
                   <span className="text-muted-foreground">**********</span>
+                </div>
+                <div className="flex justify-between items-center border-b pb-4">
+                  <span className="font-medium">Friend Link</span>
+                  <span className="text-muted-foreground">{username}.link</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Transcripts On</span>
@@ -109,7 +112,7 @@ export default function ProfilePage() {
                       </Avatar>
                   ))}
                   </div>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" onClick={() => router.push('/friends')}>
                       <ChevronRight className="h-6 w-6 text-gray-400" />
                   </Button>
               </div>
