@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, User, Bell, Palette, ChevronRight, Loader2 } from 'lucide-react';
+import { LogOut, User, Bell, Palette, ChevronRight, Loader2, UserCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -51,10 +50,6 @@ export default function ProfilePage() {
     return email.split('@')[0];
   };
 
-  const getInitials = (username: string) => {
-    return username.charAt(0).toUpperCase();
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -66,59 +61,54 @@ export default function ProfilePage() {
   const username = getUsername(user?.email);
 
   return (
-    <main className="container mx-auto max-w-2xl py-8 px-4">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-headline font-bold text-primary">Profile & Settings</h1>
-        <p className="mt-2 text-lg text-muted-foreground">Manage your account and preferences.</p>
-      </div>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center gap-4">
-          <Avatar className="h-16 w-16">
-            {/* In a real app, this would come from the user's profile */}
-            <AvatarImage src={`https://i.pravatar.cc/150?u=${username}`} alt={username} />
-            <AvatarFallback className="text-2xl">{getInitials(username)}</AvatarFallback>
-          </Avatar>
-          <div>
-            <CardTitle className="text-2xl">{username}</CardTitle>
-            <CardDescription>{user?.email}</CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6 pt-6">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium flex items-center"><Bell className="mr-2 h-5 w-5" /> Notifications</h3>
-            <div className="flex items-center justify-between rounded-md border p-4">
-              <p className="text-sm">Email Notifications</p>
-              <Switch defaultChecked />
+    <main className="container mx-auto max-w-4xl py-8 px-4">
+      <h1 className="text-xl font-semibold text-muted-foreground mb-6">Personal Profile</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+        <div className="md:col-span-1 flex flex-col items-center text-center">
+          <UserCircle2 className="w-40 h-40 text-gray-300" strokeWidth={1} />
+          <h2 className="text-2xl font-bold mt-4">Friends</h2>
+          <div className="flex items-center gap-2 mt-4">
+            <div className="flex -space-x-4">
+              {[...Array(5)].map((_, i) => (
+                <Avatar key={i} className="border-2 border-background">
+                  <AvatarFallback className="bg-gray-200">
+                    <User className="h-5 w-5 text-gray-400" />
+                  </AvatarFallback>
+                </Avatar>
+              ))}
             </div>
-             <div className="flex items-center justify-between rounded-md border p-4">
-              <p className="text-sm">Push Notifications</p>
-              <Switch />
-            </div>
+            <ChevronRight className="h-6 w-6 text-gray-400" />
           </div>
+        </div>
 
-          <Separator />
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium flex items-center"><Palette className="mr-2 h-5 w-5" /> Appearance</h3>
-            <button className="flex items-center justify-between w-full rounded-md border p-4 text-left hover:bg-accent transition-colors">
-              <p className="text-sm">Theme</p>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <span>Light</span>
-                <ChevronRight className="h-4 w-4 ml-1" />
+        <div className="md:col-span-2">
+          <div className="bg-accent/50 rounded-lg p-6 relative">
+            <Button variant="outline" size="sm" className="absolute top-4 right-4 bg-white">Edit</Button>
+            <div className="space-y-6">
+              <div className="flex justify-between items-center border-b pb-4">
+                <span className="font-medium">Username</span>
+                <span className="text-muted-foreground">{username}</span>
               </div>
-            </button>
+              <div className="flex justify-between items-center border-b pb-4">
+                <span className="font-medium">Password</span>
+                <span className="text-muted-foreground">**********</span>
+              </div>
+              <div className="flex justify-between items-center border-b pb-4">
+                <span className="font-medium">Transcripts On</span>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Friend Link</span>
+                <span className="text-muted-foreground">{username}.link</span>
+              </div>
+            </div>
           </div>
-
-          <Separator />
-          
-          <Button variant="outline" className="w-full" onClick={handleLogout}>
+          <Button variant="outline" className="w-full mt-8" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>
-
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </main>
   );
 }

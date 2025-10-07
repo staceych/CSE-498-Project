@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Users, User, Mail } from 'lucide-react';
+import { User, Mail, ListChecks } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Header() {
@@ -9,27 +9,26 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <Link href="/" className="flex items-center gap-2 text-primary font-bold text-lg">
-          <Mail className="h-6 w-6" />
-          <span className="hidden sm:inline">VoiceMail</span>
+        <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
+          <span className="text-primary">VoiceMail</span>
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
-          <Button variant="ghost" asChild>
+          <Button variant="ghost" asChild size="icon">
             <Link href="/" className="flex items-center gap-2">
-              <Home className="h-4 w-4" />
-              <span className="hidden sm:inline">Home</span>
+              <Mail className="h-5 w-5" />
+              <span className="sr-only">Home</span>
             </Link>
           </Button>
-          <Button variant="ghost" asChild>
+          <Button variant="ghost" asChild size="icon">
             <Link href="/friends" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Friends</span>
+              <ListChecks className="h-5 w-5" />
+               <span className="sr-only">Friends</span>
             </Link>
           </Button>
-           <Button variant="ghost" asChild>
+           <Button variant="ghost" asChild size="icon">
             <Link href="/profile" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Profile</span>
+              <User className="h-5 w-5" />
+              <span className="sr-only">Profile</span>
             </Link>
           </Button>
         </nav>
