@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo, ChangeEvent } from 'react';
-import { Loader2, MailCheck, Paperclip, Wand2 } from 'lucide-react';
+import { Loader2, MailCheck, Paperclip, Wand2, User, Users } from 'lucide-react';
+import Link from 'next/link';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import AudioRecorder from '@/components/audio-recorder';
 import PhotoUploader from '@/components/photo-uploader';
 import BackgroundSelector from '@/components/background-selector';
 import SentConfirmationDialog from '@/components/sent-confirmation-dialog';
+import Header from '@/components/header';
 
 export default function Home() {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -102,96 +104,99 @@ export default function Home() {
   }), [selectedBackground]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
-      <main className="w-full max-w-2xl mx-auto flex flex-col gap-8">
-        <div className="text-center">
-          <h1 className="font-headline text-4xl font-bold tracking-tight text-primary">VoiceMail</h1>
-          <p className="mt-2 text-lg text-muted-foreground">Craft a heartfelt message for someone special.</p>
-        </div>
-
-        <Card
-          className="w-full transition-all duration-500"
-          style={cardStyle}
-        >
-          <div className="rounded-lg p-6 text-card-foreground">
-            <CardHeader>
-              <CardTitle className="font-headline">Your Voice Letter</CardTitle>
-              <CardDescription className="text-muted-foreground/90">Record a message of up to 5 minutes.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <AudioRecorder onRecordingComplete={handleAudioRecordingComplete} />
-
-              <div>
-                <Label className="flex items-center gap-2 mb-2"><Paperclip className="w-4 h-4" />Attach Photos (up to 3)</Label>
-                <PhotoUploader onPhotosChange={handlePhotosChange} />
-              </div>
-
-              {audioBlob && (
-                <div className="space-y-4 rounded-lg border bg-background/80 backdrop-blur-sm p-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="transcript-switch" className="flex items-center gap-2">
-                      <Wand2 className="w-4 h-4" />
-                      Generate Text Transcript
-                    </Label>
-                    <Switch
-                      id="transcript-switch"
-                      checked={wantTranscript}
-                      onCheckedChange={setWantTranscript}
-                    />
-                  </div>
-                  {wantTranscript && (
-                    <div className="space-y-2">
-                      <Button
-                        onClick={handleGenerateTranscript}
-                        disabled={isTranscribing}
-                        variant="secondary"
-                        size="sm"
-                      >
-                        {isTranscribing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {transcript ? 'Regenerate' : 'Generate'} Transcript
-                      </Button>
-                      {(transcript || isTranscribing) && (
-                        <Textarea
-                          value={transcript}
-                          readOnly
-                          placeholder="Your transcript will appear here..."
-                          className="h-32 bg-background/50"
-                        />
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-            <CardFooter>
-              <Button
-                size="lg"
-                className="w-full"
-                onClick={handleSendLetter}
-                disabled={!audioBlob || isSending}
-              >
-                {isSending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <MailCheck className="mr-2 h-4 w-4" />
-                )}
-                {isSending ? 'Sending...' : 'Send Your Letter'}
-              </Button>
-            </CardFooter>
+    <>
+      <Header />
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8 pt-20">
+        <main className="w-full max-w-2xl mx-auto flex flex-col gap-8">
+          <div className="text-center">
+            <h1 className="font-headline text-4xl font-bold tracking-tight text-primary">VoiceMail</h1>
+            <p className="mt-2 text-lg text-muted-foreground">Craft a heartfelt message for someone special.</p>
           </div>
-        </Card>
 
-        <BackgroundSelector
-          selected={selectedBackground}
-          onSelect={setSelectedBackground}
+          <Card
+            className="w-full transition-all duration-500"
+            style={cardStyle}
+          >
+            <div className="rounded-lg p-6 text-card-foreground">
+              <CardHeader>
+                <CardTitle className="font-headline">Your Voice Letter</CardTitle>
+                <CardDescription className="text-muted-foreground/90">Record a message of up to 5 minutes.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <AudioRecorder onRecordingComplete={handleAudioRecordingComplete} />
+
+                <div>
+                  <Label className="flex items-center gap-2 mb-2"><Paperclip className="w-4 h-4" />Attach Photos (up to 3)</Label>
+                  <PhotoUploader onPhotosChange={handlePhotosChange} />
+                </div>
+
+                {audioBlob && (
+                  <div className="space-y-4 rounded-lg border bg-background/80 backdrop-blur-sm p-4">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="transcript-switch" className="flex items-center gap-2">
+                        <Wand2 className="w-4 h-4" />
+                        Generate Text Transcript
+                      </Label>
+                      <Switch
+                        id="transcript-switch"
+                        checked={wantTranscript}
+                        onCheckedChange={setWantTranscript}
+                      />
+                    </div>
+                    {wantTranscript && (
+                      <div className="space-y-2">
+                        <Button
+                          onClick={handleGenerateTranscript}
+                          disabled={isTranscribing}
+                          variant="secondary"
+                          size="sm"
+                        >
+                          {isTranscribing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          {transcript ? 'Regenerate' : 'Generate'} Transcript
+                        </Button>
+                        {(transcript || isTranscribing) && (
+                          <Textarea
+                            value={transcript}
+                            readOnly
+                            placeholder="Your transcript will appear here..."
+                            className="h-32 bg-background/50"
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button
+                  size="lg"
+                  className="w-full"
+                  onClick={handleSendLetter}
+                  disabled={!audioBlob || isSending}
+                >
+                  {isSending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <MailCheck className="mr-2 h-4 w-4" />
+                  )}
+                  {isSending ? 'Sending...' : 'Send Your Letter'}
+                </Button>
+              </CardFooter>
+            </div>
+          </Card>
+
+          <BackgroundSelector
+            selected={selectedBackground}
+            onSelect={setSelectedBackground}
+          />
+        </main>
+
+        <SentConfirmationDialog
+          open={isSent}
+          onOpenChange={setIsSent}
+          onConfirm={resetLetter}
         />
-      </main>
-
-      <SentConfirmationDialog
-        open={isSent}
-        onOpenChange={setIsSent}
-        onConfirm={resetLetter}
-      />
-    </div>
+      </div>
+    </>
   );
 }
