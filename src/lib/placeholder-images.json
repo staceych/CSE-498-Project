@@ -1,0 +1,34 @@
+{
+  "placeholderImages": [
+    {
+      "id": "bg-1",
+      "description": "Style One",
+      "imageUrl": "/imageOne.png",
+      "imageHint": "background style"
+    },
+    {
+      "id": "bg-2",
+      "description": "Style Two",
+      "imageUrl": "/imageTwo.png",
+      "imageHint": "background style"
+    },
+    {
+      "id": "bg-3",
+      "description": "Style Three",
+      "imageUrl": "/imageThree.png",
+      "imageHint": "background style"
+    },
+    {
+      "id": "bg-4",
+      "description": "Style Four",
+      "imageUrl": "/imageFour.png",
+      "imageHint": "background style"
+    },
+    {
+      "id": "bg-5",
+      "description": "Style Five",
+      "imageUrl": "/imageFive.png",
+      "imageHint": "background style"
+    }
+  ]
+}

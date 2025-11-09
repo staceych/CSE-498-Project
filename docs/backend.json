@@ -1,0 +1,210 @@
+
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the VoiceMail application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "lastActive": {
+          "type": "string",
+          "description": "Timestamp of the user's last activity.",
+          "format": "date-time"
+        },
+        "notificationTime": {
+          "type": "string",
+          "description": "The preferred time of day for the user to receive notifications."
+        },
+        "dailyLetterLimits": {
+          "type": "object",
+          "description": "A map to track the number of letters sent to each friend per day.",
+          "properties": {
+            "date": {
+              "type": "string",
+              "format": "date",
+              "description": "The date for which the counts are valid (e.g., 'YYYY-MM-DD')."
+            },
+            "counts": {
+              "type": "object",
+              "description": "A map where keys are friend user IDs and values are the number of letters sent to them on the given date.",
+              "additionalProperties": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "avatarColor": {
+          "type": "string",
+          "description": "A hex color code for the user's avatar fallback background."
+        },
+        "enableTranscripts": {
+          "type": "boolean",
+          "description": "If true, transcripts will be automatically generated for sent and received letters.",
+          "default": false
+        }
+      },
+      "required": [
+        "id",
+        "email"
+      ]
+    },
+    "VoiceLetter": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "VoiceLetter",
+      "type": "object",
+      "description": "Represents a voice letter sent by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the VoiceLetter entity."
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Reference to the User who sent the letter. (Relationship: User 1:N VoiceLetter)"
+        },
+        "recipientId": {
+          "type": "string",
+          "description": "Reference to the User who received the letter. (Relationship: User 1:N VoiceLetter)"
+        },
+        "audioUrl": {
+          "type": "string",
+          "description": "Download URL for the recorded voice message from Cloud Storage.",
+          "format": "uri"
+        },
+        "backgroundStyleId": {
+          "type": "string",
+          "description": "Reference to the BackgroundStyle used in the letter. (Relationship: BackgroundStyle 1:N VoiceLetter)"
+        },
+        "transcript": {
+          "type": "string",
+          "description": "Text transcript of the voice message (optional)."
+        },
+        "translation": {
+          "type": "string",
+          "description": "The translated version of the transcript"
+        },
+        "sentDate": {
+          "type": "string",
+          "description": "Date and time when the letter was sent.",
+          "format": "date-time"
+        },
+        "photoUrls": {
+          "type": "array",
+          "description": "Array of download URLs for photo attachments from Cloud Storage.",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "isRead": {
+          "type": "boolean",
+          "description": "Indicates whether the recipient has opened/read the letter. Defaults to false."
+        }
+      },
+      "required": [
+        "id",
+        "senderId",
+        "recipientId",
+        "audioUrl",
+        "sentDate"
+      ]
+    },
+    "BackgroundStyle": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BackgroundStyle",
+      "type": "object",
+      "description": "Represents a background style option for voice letters.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the BackgroundStyle entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the background style."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the background style image.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "imageUrl"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information. Accessible only to the user and administrators.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/letters/{letterId}",
+        "definition": {
+          "entityName": "VoiceLetter",
+          "schema": {
+            "$ref": "#/backend/entities/VoiceLetter"
+          },
+          "description": "Stores a voice letter sent between users.",
+          "params": [
+            {
+              "name": "letterId",
+              "description": "The unique identifier of the voice letter."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/backgroundStyles/{backgroundStyleId}",
+        "definition": {
+          "entityName": "BackgroundStyle",
+          "schema": {
+            "$ref": "#/backend/entities/BackgroundStyle"
+          },
+          "description": "Stores background style options for voice letters. Publicly accessible.",
+          "params": [
+            {
+              "name": "backgroundStyleId",
+              "description": "The unique identifier of the background style."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to be simple and secure. It uses a top-level 'users' collection for profiles and a top-level 'letters' collection for all voice letters. This avoids complex subcollection queries and simplifies security rules. User data is private, but friend relationships allow controlled access to profiles. The 'letters' collection is secured so that only the sender or recipient can read a specific letter. Public assets like background styles are in their own collection with open read access for all authenticated users."
+  }
+}
+
+    

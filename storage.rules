@@ -1,0 +1,69 @@
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    /**
+     * Defines rules for user profile pictures.
+     * Path: /profilePictures/{userId}
+     * A user can upload a file here, which becomes their avatar.
+     */
+    match /profilePictures/{userId} {
+      /**
+       * ALLOW READ: Anyone can read a profile picture.
+       */
+      allow read: if isSignedIn();
+      /**
+       * ALLOW WRITE: A user can only write to their own profile picture path.
+       * The uploaded file must be an image and under 5MB.
+       */
+      allow write: if request.auth.uid == userId
+                   && request.resource.contentType.matches('image/.*')
+                   && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    /**
+     * Defines rules for the initial welcome message.
+     * Path: /voiceLetters/InitialMessage/VoiceMail Intro.mp3
+     * This allows any authenticated user (including a newly created one)
+     * to read the introductory audio file for their first welcome letter.
+     */
+    match /voiceLetters/InitialMessage/VoiceMail Intro.mp3 {
+      allow read: if isSignedIn();
+    }
+    
+    /**
+     * Defines rules for user-generated voice letter media.
+     * Path: /voiceLetters/{letterId}/{allPaths=**}
+     */
+    match /voiceLetters/{letterId}/{allPaths=**} {
+      /**
+       * ALLOW READ: If the user is authenticated. The actual authorization is handled
+       * by Firestore rules controlling access to the download URLs. This rule prevents
+       * unauthenticated enumeration but allows the app to fetch media for authorized users.
+       */
+      allow read: if isSignedIn();
+
+      /**
+       * ALLOW WRITE: If the user is authenticated and the file meets size/type constraints.
+       * This allows users to upload files for new letters before the Firestore document exists.
+       * Security is maintained because only authorized users (sender/receiver via Firestore rules)
+       * will ever get the download URL.
+       */
+      allow write: if isSignedIn()
+                    && (
+                      // Audio file validation
+                      (request.resource.contentType == 'audio/webm' && request.resource.size < 5 * 1024 * 1024) ||
+                      // Image file validation
+                      ((request.resource.contentType == 'image/jpeg' || request.resource.contentType == 'image/png') && request.resource.size < 5 * 1024 * 1024)
+                    );
+    }
+  }
+}
