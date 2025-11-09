@@ -183,7 +183,11 @@ export default function ComposePage() {
             <div className="rounded-lg p-6 bg-background/80">
               <CardHeader>
                 <CardTitle className="font-headline">Your Voice Letter</CardTitle>
-                <CardDescription>Record a message of up to 5 minutes.</CardDescription>
+                <CardDescription>Record a message of up to 5 minutes. 
+                                Here are some ideas to get you started: 
+                                Is there anything that reminded you of them recently?
+                                Whats something you are looking forward to?
+                                What has been giving you energy lately?</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <AudioRecorder key={`audio-${composerKey}`} onRecordingComplete={handleAudioRecordingComplete} />

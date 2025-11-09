@@ -49,7 +49,7 @@ export default function InboxPage() {
 
         // Fetch sender info for each letter
         const lettersWithSendersPromises = fetchedLetters.map(async (letter) => {
-            if (letter.senderId === 'rnJavgs7XPgmQ00eBAmu80pKYOO2') {
+            if (letter.senderId === 'rmJavgs7XPGmQ00EBaMu80pKYO02') {
                 return { ...letter, senderName: ' The VoiceMail Team' };
             }
             const senderDocRef = doc(firestore, 'users', letter.senderId);
