@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, User, ChevronRight, Loader2, UserCircle2, Copy, Bell, Inbox, Send } from 'lucide-react';
+import { LogOut, User, ChevronRight, Loader2, UserCircle2, Copy, Bell, Inbox, Send, Edit, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { VoiceLetter } from '@/lib/letters';
 import VoiceLetterCard from '@/components/voice-letter-card';
+import { Input } from '@/components/ui/input';
+import { updateUsername as updateUserUsername } from '@/lib/user';
 
 type UserProfile = {
   username: string;
@@ -46,6 +48,10 @@ export default function ProfilePage() {
   const [sentLetters, setSentLetters] = useState<SentLetterWithRecipient[]>([]);
   const [isLettersLoading, setIsLettersLoading] = useState(true);
 
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+  const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
+
   const router = useRouter();
   const { toast } = useToast();
 
@@ -61,7 +67,9 @@ export default function ProfilePage() {
     const userDocRef = doc(firestore, 'users', user.uid);
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
-        setUserProfile(docSnap.data() as UserProfile);
+        const profileData = docSnap.data() as UserProfile;
+        setUserProfile(profileData);
+        setNewUsername(profileData.username);
       } else {
         console.error("User profile document does not exist.");
       }
@@ -170,6 +178,32 @@ export default function ProfilePage() {
     setSentLetters(prevLetters => prevLetters.filter(letter => letter.id !== letterId));
   };
 
+  const handleUsernameUpdate = async () => {
+    if (!user || !firestore || !userProfile) return;
+    if (newUsername.trim() === '' || newUsername === userProfile.username) {
+      setIsEditingUsername(false);
+      return;
+    }
+
+    setIsUpdatingUsername(true);
+    try {
+      await updateUserUsername(firestore, user.uid, newUsername);
+      toast({
+        title: 'Username Updated',
+        description: `Your username has been changed to ${newUsername}.`,
+      });
+      setIsEditingUsername(false);
+    } catch (error: any) {
+      toast({
+        title: 'Update Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdatingUsername(false);
+    }
+  };
+
 
   if (isUserLoading || !userProfile) {
     return (
@@ -194,7 +228,31 @@ export default function ProfilePage() {
                   {username?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <h1 className="text-3xl font-bold mt-4">{username}</h1>
+            <div className="relative mt-4">
+              {!isEditingUsername ? (
+                <div className="flex items-center gap-2">
+                  <h1 className="text-3xl font-bold">{username}</h1>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsEditingUsername(true)}>
+                    <Edit className="h-5 w-5" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Input 
+                    value={newUsername} 
+                    onChange={(e) => setNewUsername(e.target.value)} 
+                    className="text-xl h-10"
+                    disabled={isUpdatingUsername}
+                  />
+                  <Button size="icon" className="h-10 w-10" onClick={handleUsernameUpdate} disabled={isUpdatingUsername}>
+                    {isUpdatingUsername ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => { setIsEditingUsername(false); setNewUsername(username); }} disabled={isUpdatingUsername}>
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2 mt-2">
                 <span className="text-muted-foreground font-mono">{friendCode}</span>
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={copyFriendCode}>
