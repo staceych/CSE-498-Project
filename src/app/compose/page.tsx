@@ -2,17 +2,14 @@
 'use client';
 
 import { useState, useMemo, ChangeEvent, useEffect } from 'react';
-import { Loader2, MailCheck, Paperclip, Wand2 } from 'lucide-react';
+import { Loader2, MailCheck, Paperclip } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { PlaceHolderImages, type ImagePlaceholder } from '@/lib/placeholder-images';
-import { transcribeVoiceMessage } from '@/ai/flows/transcribe-voice-message';
+import { type ImagePlaceholder } from '@/lib/placeholder-images';
 import { sendLetter } from '@/lib/letters';
 import AudioRecorder from '@/components/audio-recorder';
 import PhotoUploader from '@/components/photo-uploader';
@@ -26,9 +23,6 @@ export default function ComposePage() {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [photos, setPhotos] = useState<File[]>([]);
   const [selectedBackground, setSelectedBackground] = useState<ImagePlaceholder | null>(null);
-  const [transcript, setTranscript] = useState('');
-  const [generateTranscript, setGenerateTranscript] = useState(false);
-  const [isTranscribing, setIsTranscribing] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [isSelectFriendOpen, setIsSelectFriendOpen] = useState(false);
@@ -44,36 +38,8 @@ export default function ComposePage() {
   }, [isAuthLoading, currentUser, router]);
 
 
-  const handleGenerateTranscript = async (blob: Blob) => {
-    setIsTranscribing(true);
-    setTranscript('Generating transcript...');
-    try {
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = async () => {
-        const base64Audio = reader.result as string;
-        const result = await transcribeVoiceMessage({ audioDataUri: base64Audio });
-        setTranscript(result.transcript);
-        setIsTranscribing(false);
-      };
-    } catch (error) {
-      console.error('Transcription failed:', error);
-      setTranscript('Could not generate transcript. Please try again.');
-      toast({
-        title: 'Transcription Failed',
-        description: 'An error occurred while generating the transcript.',
-        variant: 'destructive',
-      });
-      setIsTranscribing(false);
-    }
-  };
-
   const handleAudioRecordingComplete = (blob: Blob | null) => {
     setAudioBlob(blob);
-    setTranscript('');
-    if (blob && generateTranscript) {
-      handleGenerateTranscript(blob);
-    }
   };
 
   const handlePhotosChange = (files: File[]) => {
@@ -116,7 +82,7 @@ export default function ComposePage() {
             audio: audioBlob,
             photos: photos,
             background: selectedBackground,
-            transcript: generateTranscript ? transcript : null,
+            transcript: null,
         });
 
         setIsSent(true); 
@@ -144,8 +110,6 @@ export default function ComposePage() {
   const resetLetter = () => {
     setAudioBlob(null);
     setPhotos([]);
-    setTranscript('');
-    setGenerateTranscript(false);
     setIsSent(false);
     setSelectedBackground(null);
     setComposerKey(Date.now()); // Change the key to force re-mount
@@ -196,45 +160,13 @@ export default function ComposePage() {
                   <Label className="flex items-center gap-2 mb-2"><Paperclip className="w-4 h-4" />Attach Photos (up to 3)</Label>
                   <PhotoUploader key={`photos-${composerKey}`} onPhotosChange={handlePhotosChange} />
                 </div>
-
-                {audioBlob && (
-                  <div className="space-y-4 rounded-lg border bg-background/80 p-4">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="transcript-switch" className="flex items-center gap-2">
-                            <Wand2 className="w-4 h-4" />
-                            Generate Transcript (optional)
-                        </Label>
-                        <Switch
-                            id="transcript-switch"
-                            checked={generateTranscript}
-                            onCheckedChange={(checked) => {
-                                setGenerateTranscript(checked);
-                                if (checked && audioBlob && !transcript) {
-                                    handleGenerateTranscript(audioBlob);
-                                }
-                            }}
-                        />
-                    </div>
-                    {generateTranscript && (
-                        <>
-                            <Textarea
-                                value={transcript}
-                                readOnly
-                                placeholder="Your transcript will appear here..."
-                                className="h-32 bg-background/50"
-                            />
-                            {isTranscribing && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Generating...</div>}
-                        </>
-                    )}
-                  </div>
-                )}
               </CardContent>
               <CardFooter>
                 <Button
                   size="lg"
                   className="w-full"
                   onClick={handleOpenSendDialog}
-                  disabled={!audioBlob || isSending || (generateTranscript && isTranscribing)}
+                  disabled={!audioBlob || isSending}
                 >
                   {isSending ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
