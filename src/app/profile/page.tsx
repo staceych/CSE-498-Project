@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, ChevronRight, Loader2, Copy, Bell, Edit, Check, X, Camera } from 'lucide-react';
+import { LogOut, ChevronRight, Loader2, Copy, Bell, Edit, Check, X, Camera, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +17,18 @@ import VoiceLetterCard from '@/components/voice-letter-card';
 import { Input } from '@/components/ui/input';
 import { updateUsername, uploadProfilePicture } from '@/lib/user';
 import AvatarUploadDialog from '@/components/avatar-upload-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { deleteUser } from 'firebase/auth';
+
 
 type UserProfile = {
   username: string;
@@ -57,6 +69,9 @@ export default function ProfilePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -253,6 +268,31 @@ export default function ProfilePage() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    setIsDeleting(true);
+    try {
+      await deleteUser(user);
+      toast({
+        title: 'Account Deleted',
+        description: 'Your account has been permanently deleted.',
+      });
+      router.push('/login');
+    } catch (error: any) {
+      console.error('Account deletion error:', error);
+      toast({
+        title: 'Deletion Failed',
+        description: error.code === 'auth/requires-recent-login'
+          ? 'This is a sensitive operation. Please log out and log back in before deleting your account.'
+          : 'An error occurred while deleting your account.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
 
   if (isUserLoading || !userProfile) {
     return (
@@ -339,10 +379,14 @@ export default function ProfilePage() {
                             <span className="font-medium">Email</span>
                             <span className="text-muted-foreground">{email}</span>
                         </div>
-                        <div className='pt-2'>
+                        <div className='pt-2 flex flex-col space-y-2'>
                           <Button variant="outline" className="w-full" onClick={handleLogout}>
                               <LogOut className="mr-2 h-4 w-4" />
                               Logout
+                          </Button>
+                           <Button variant="destructive-outline" className="w-full" onClick={() => setShowDeleteConfirm(true)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Account
                           </Button>
                         </div>
                     </CardContent>
@@ -452,8 +496,33 @@ export default function ProfilePage() {
         isUploading={isUploading}
         onConfirm={handleUploadConfirm}
     />
+
+    <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action is permanent and cannot be undone. This will permanently delete your
+              account and all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Delete Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
+
+    
 
     
