@@ -280,13 +280,20 @@ export default function ProfilePage() {
       router.push('/login');
     } catch (error: any) {
       console.error('Account deletion error:', error);
-      toast({
-        title: 'Deletion Failed',
-        description: error.code === 'auth/requires-recent-login'
-          ? 'This is a sensitive operation. Please log out and log back in before deleting your account.'
-          : 'An error occurred while deleting your account.',
-        variant: 'destructive',
-      });
+      if (error.code === 'auth/requires-recent-login') {
+        toast({
+          title: 'Re-authentication Required',
+          description: 'This is a sensitive operation. Please log out and log back in before deleting your account.',
+          variant: 'destructive',
+          duration: 8000,
+        });
+      } else {
+        toast({
+          title: 'Deletion Failed',
+          description: 'An error occurred while deleting your account.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirm(false);
