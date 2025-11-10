@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, User, ChevronRight, Loader2, UserCircle2, Copy, Bell, Inbox, Send, Edit, Check, X } from 'lucide-react';
+import { LogOut, ChevronRight, Loader2, Copy, Bell, Edit, Check, X, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -15,11 +15,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { VoiceLetter } from '@/lib/letters';
 import VoiceLetterCard from '@/components/voice-letter-card';
 import { Input } from '@/components/ui/input';
-import { updateUsername as updateUserUsername } from '@/lib/user';
+import { updateUsername, uploadProfilePicture } from '@/lib/user';
+import AvatarUploadDialog from '@/components/avatar-upload-dialog';
 
 type UserProfile = {
   username: string;
-  email: string; // Ensure email is part of the profile
+  email: string;
   friendCode: string;
   friends: string[];
   friendRequestReceived: string[];
@@ -51,6 +52,11 @@ export default function ProfilePage() {
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState('');
   const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -187,7 +193,7 @@ export default function ProfilePage() {
 
     setIsUpdatingUsername(true);
     try {
-      await updateUserUsername(firestore, user.uid, newUsername);
+      await updateUsername(firestore, user.uid, newUsername);
       toast({
         title: 'Username Updated',
         description: `Your username has been changed to ${newUsername}.`,
@@ -204,6 +210,49 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'File too large',
+          description: 'Please select an image smaller than 5MB.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleUploadConfirm = async () => {
+    if (!selectedFile || !user || !firestore) return;
+
+    setIsUploading(true);
+    try {
+      await uploadProfilePicture(firestore, user.uid, selectedFile);
+      toast({
+        title: 'Avatar Updated',
+        description: 'Your new profile picture has been saved.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Upload Failed',
+        description: error.message || 'Could not upload your profile picture. Check security rules and try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
+      setSelectedFile(null);
+      setPreviewUrl(null);
+    }
+  };
+
 
   if (isUserLoading || !userProfile) {
     return (
@@ -217,17 +266,30 @@ export default function ProfilePage() {
   const friendRequestCount = friendRequestReceived?.length || 0;
 
   return (
+    <>
     <main className="container mx-auto max-w-4xl py-8 px-4">
        <div className="flex flex-col items-center text-center mb-8">
-            <Avatar className="w-32 h-32 border-4 border-background">
-              {avatar && <AvatarImage src={avatar} alt={username} />}
-              <AvatarFallback 
-                className="text-5xl text-black"
-                style={{ backgroundColor: avatarColor }}
-              >
-                  {username?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative group">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                accept="image/png, image/jpeg, image/gif"
+              />
+              <Avatar className="w-32 h-32 border-4 border-background cursor-pointer" onClick={handleAvatarClick}>
+                {avatar && <AvatarImage src={avatar} alt={username} />}
+                <AvatarFallback 
+                  className="text-5xl"
+                  style={{ backgroundColor: avatarColor }}
+                >
+                    {username?.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={handleAvatarClick}>
+                  <Camera className="w-8 h-8 text-white" />
+              </div>
+            </div>
             <div className="relative mt-4">
               {!isEditingUsername ? (
                 <div className="flex items-center gap-2">
@@ -315,25 +377,10 @@ export default function ProfilePage() {
                         <CardTitle>Friends ({friends?.length || 0})</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex items-center justify-between">
-                            <div className="flex -space-x-4">
-                            {friends && friends.length > 0 ? friends.slice(0, 5).map((friendId, i) => (
-                                <Avatar key={i} className="border-2 border-background">
-                                <AvatarFallback className="bg-gray-200">
-                                    <User className="h-5 w-5 text-gray-400" />
-                                </AvatarFallback>
-                                </Avatar>
-                            )) : <p className="text-sm text-muted-foreground">No friends yet. Go add some!</p>}
-                            {friends && friends.length > 5 && (
-                            <Avatar className="border-2 border-background">
-                                <AvatarFallback>+{friends.length - 5}</AvatarFallback>
-                            </Avatar>
-                            )}
-                            </div>
-                            <Button variant="ghost" size="icon" onClick={() => router.push('/friends/list')}>
-                                <ChevronRight className="h-6 w-6 text-gray-400" />
-                            </Button>
-                        </div>
+                        <button className="flex items-center justify-between w-full text-left" onClick={() => router.push('/friends/list')}>
+                            <div className="text-sm text-muted-foreground">View your friends</div>
+                            <ChevronRight className="h-6 w-6 text-gray-400" />
+                        </button>
                     </CardContent>
                 </Card>
                 <Card>
@@ -341,18 +388,16 @@ export default function ProfilePage() {
                         <CardTitle>Friend Requests ({friendRequestCount || 0})</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex items-center justify-between">
+                        <button className="flex items-center justify-between w-full text-left" onClick={() => router.push('/friends')}>
                              <div className="flex items-center gap-2">
                                {friendRequestCount > 0 ? (
-                                    <p className="text-sm text-muted-foreground">You have {friendRequestCount} new request{friendRequestCount > 1 && 's'}!</p>
+                                    <p className="text-sm text-primary font-semibold flex items-center"><Bell className="h-4 w-4 mr-1"/>You have {friendRequestCount} new request{friendRequestCount > 1 && 's'}!</p>
                                ) : (
                                     <p className="text-sm text-muted-foreground">No new requests.</p>
                                )}
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => router.push('/friends')}>
-                                <ChevronRight className="h-6 w-6 text-gray-400" />
-                            </Button>
-                        </div>
+                            <ChevronRight className="h-6 w-6 text-gray-400" />
+                        </button>
                     </CardContent>
                 </Card>
             </div>
@@ -382,8 +427,7 @@ export default function ProfilePage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-12 px-6 border-2 border-dashed rounded-lg">
-                            <Send className="mx-auto h-12 w-12 text-muted-foreground" />
+                         <div className="text-center py-12 px-6 border-2 border-dashed rounded-lg">
                             <h3 className="mt-4 text-lg font-medium">No Sent Letters Yet</h3>
                             <p className="mt-1 text-sm text-muted-foreground">
                                 When you send a letter, it will appear here.
@@ -395,5 +439,21 @@ export default function ProfilePage() {
         </TabsContent>
       </Tabs>
     </main>
+
+    <AvatarUploadDialog
+        isOpen={!!previewUrl}
+        onOpenChange={(isOpen) => {
+            if (!isOpen) {
+                setPreviewUrl(null);
+                setSelectedFile(null);
+            }
+        }}
+        previewUrl={previewUrl}
+        isUploading={isUploading}
+        onConfirm={handleUploadConfirm}
+    />
+    </>
   );
 }
+
+    
