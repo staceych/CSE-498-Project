@@ -1,4 +1,3 @@
-
 'use client';
 
 import { db, storage } from './firebase';
@@ -8,6 +7,7 @@ import type { ImagePlaceholder } from './placeholder-images';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { format } from 'date-fns';
+import { sendLetterNotification } from '@/ai/flows/send-letter-notification-flow';
 
 export type VoiceLetter = {
   id: string;
@@ -73,9 +73,9 @@ export const sendLetter = async (payload: SendLetterPayload): Promise<void> => {
             
             const newCounts = { ...dailyLimits.counts };
 
-            // Pre-fetch recipient names for potential error messages
+            // Pre-fetch recipient names for potential error messages and email
             const recipientDocs = await Promise.all(
-                recipientIds.map(id => getDoc(doc(db, 'users', id)))
+                recipientIds.map(id => transaction.get(doc(db, 'users', id)))
             );
 
             // First, check if the limit would be exceeded for any recipient
@@ -103,7 +103,10 @@ export const sendLetter = async (payload: SendLetterPayload): Promise<void> => {
             );
 
             // Create a letter document for each recipient
-            for (const recipientId of recipientIds) {
+            for (let i = 0; i < recipientIds.length; i++) {
+                const recipientId = recipientIds[i];
+                const recipientDoc = recipientDocs[i];
+
                 const letterDocRef = doc(collection(db, 'letters'));
 
                 const letterData: Omit<VoiceLetter, 'sentDate' | 'isRead'> & { sentDate: any, isRead: boolean } = {
@@ -118,6 +121,19 @@ export const sendLetter = async (payload: SendLetterPayload): Promise<void> => {
                     isRead: false,
                 };
                 transaction.set(letterDocRef, letterData);
+                
+                // Prepare email data
+                if (recipientDoc.exists()) {
+                    const recipientData = recipientDoc.data();
+                    // This will be executed after the transaction successfully commits
+                    const emailPayload = {
+                        senderName: senderData.username || 'A friend',
+                        recipientEmail: recipientData.email,
+                        recipientName: recipientData.username || 'friend',
+                    };
+                    // Instead of awaiting, we fire and forget the email notification
+                    sendLetterNotification(emailPayload).catch(console.error);
+                }
             }
 
             // Update the user's letter count map
