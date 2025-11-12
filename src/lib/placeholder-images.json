@@ -9,7 +9,7 @@
     {
       "id": "bg-2",
       "description": "Style Two",
-      "imageUrl": "/imageTwo.png",
+      "imageUrl": "/imageTwo.png?v=2",
       "imageHint": "background style"
     },
     {
@@ -21,13 +21,13 @@
     {
       "id": "bg-4",
       "description": "Style Four",
-      "imageUrl": "/imageFour.png",
+      "imageUrl": "/imageFour.png?v=2",
       "imageHint": "background style"
     },
     {
       "id": "bg-5",
       "description": "Style Five",
-      "imageUrl": "/imageFive.png",
+      "imageUrl": "/imageFive.png?v=2",
       "imageHint": "background style"
     }
   ]
