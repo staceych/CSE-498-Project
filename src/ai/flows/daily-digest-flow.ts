@@ -89,6 +89,7 @@ export const sendDailyDigests = ai.defineFlow(
         const now = new Date();
         const currentHour24 = now.getHours();
         
+        console.log(`Server Time Check: ${now.toString()}`);
         console.log(`[${format(now, 'yyyy-MM-dd HH:mm:ss')}] Running daily digest flow for hour: ${currentHour24}`);
 
         // 1. Fetch all users

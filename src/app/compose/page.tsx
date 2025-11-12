@@ -147,7 +147,7 @@ export default function ComposePage() {
             <div className="rounded-lg p-6 bg-background/80">
               <CardHeader>
                 <CardTitle className="font-headline">Your Voice Letter</CardTitle>
-                <CardDescription className="font-semibold">Record a message of up to 5 minutes. 
+                <CardDescription className="font text-foreground">Record a message of up to 5 minutes. 
                                 Here are some ideas to get you started: 
                                 Is there anything that reminded you of them recently?
                                 Whats something you are looking forward to?
