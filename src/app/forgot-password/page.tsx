@@ -27,7 +27,7 @@ export default function ForgotPasswordPage() {
       await sendPasswordResetEmail(auth, email);
       toast({
         title: 'Check your email',
-        description: `A password reset link has been sent to ${email}.`,
+        description: `A password reset link has been sent to ${email}. If you do not see the email, check your spam folder.`,
       });
       router.push('/login');
     } catch (error: any) {
